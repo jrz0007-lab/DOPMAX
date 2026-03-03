@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DOPMAX</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Pantalla de Carga -->
+    <div id="loading-screen" class="screen active">
+        <div class="logo-container">
+            <div class="logo">
+                <div class="square white"></div>
+                <div class="square yellow"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Página Principal - Home con videos tipo DVD -->
+    <div id="home-screen" class="screen">
+        <div class="top-tabs">
+            <span class="tab" data-tab="seguidos">Seguidos</span>
+            <span class="separator">|</span>
+            <span class="tab active" data-tab="parati">Para Ti</span>
+        </div>
+        
+        <div class="dvd-videos-container" id="dvd-container">
+            <!-- Logo de fondo -->
+            <div class="background-logo">
+                <div class="bg-logo-square white"></div>
+                <div class="bg-logo-square yellow"></div>
+            </div>
+            
+            <!-- Video 1 -->
+            <div class="dvd-video" id="video1" data-vx="0.3" data-vy="0.25">
+                <video class="video-element" autoplay loop muted playsinline>
+                    <source src="videos/13º112.mp4" type="video/mp4">
+                </video>
+                <div class="video-overlay">
+                    <div class="video-user">@musicista</div>
+                </div>
+            </div>
+
+            <!-- Video 2 -->
+            <div class="dvd-video" id="video2" data-vx="-0.25" data-vy="0.3">
+                <video class="video-element" autoplay loop muted playsinline>
+                    <source src="videos/314141.mp4" type="video/mp4">
+                </video>
+                <div class="video-overlay">
+                    <div class="video-user">@viral_clips</div>
+                </div>
+            </div>
+
+            <!-- Video 3 -->
+            <div class="dvd-video" id="video3" data-vx="0.28" data-vy="-0.22">
+                <video class="video-element" autoplay loop muted playsinline>
+                    <source src="videos/Download (1).mp4" type="video/mp4">
+                </video>
+                <div class="video-overlay">
+                    <div class="video-user">@gatos_graciosos</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Barra de Navegación -->
+        <nav class="bottom-nav">
+            <button class="nav-btn" data-screen="inbox">
+                <svg viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M19 9h-2V5a1 1 0 0 0-1-1H8a1 1 0 0 0-1 1v4H5a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-8a1 1 0 0 0-1-1zM9 5h6v4H9V5zm8 13H7v-7h10v7z"/>
+                </svg>
+                <span class="nav-label">Bandeja</span>
+            </button>
+            <button class="nav-btn" data-screen="home">
+                <svg viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12 3L2 12h3v8h6v-6h2v6h6v-8h3L12 3zm0 14.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+                </svg>
+                <span class="nav-label">Inicio</span>
+            </button>
+            <!-- Botón central de comentarios (oculto por defecto) -->
+            <button class="nav-btn comment-nav-btn hidden" id="comment-nav-btn" data-action="open-comments">
+                <svg viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M20 2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h14l4 4V4c0-1.1-.9-2-2-2zm-2 12H6v-2h12v2zm0-3H6V9h12v2zm0-3H6V6h12v2z"/>
+                </svg>
+            </button>
+            <button class="nav-btn create-btn" data-screen="creator">
+                <svg viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
+                </svg>
+            </button>
+            <button class="nav-btn" data-screen="profile">
+                <div class="profile-avatar">🐱</div>
+                <span class="nav-label">Perfil</span>
+            </button>
+        </nav>
+    </div>
+
+    <!-- Panel de Comentarios (overlay) -->
+    <div id="comments-panel" class="comments-panel">
+        <div class="comments-header">
+            <span class="comments-title">Comentarios</span>
+            <button class="close-comments" id="close-comments">✕</button>
+        </div>
+        <div class="comments-list" id="comments-list">
+            <!-- Los comentarios se cargarán dinámicamente -->
+        </div>
+        <div class="comments-input-container">
+            <input type="text" class="comments-input" id="comment-input" placeholder="Escribe un comentario...">
+            <button class="send-comment" id="send-comment">Enviar</button>
+        </div>
+    </div>
+
+    <!-- Pantalla de Bandeja de Entrada -->
+    <div id="inbox-screen" class="screen">
+        <div class="inbox-header">
+            <h2>Bandeja de Entrada</h2>
+        </div>
+        
+        <!-- Pestañas de la bandeja -->
+        <div class="inbox-tabs">
+            <button class="inbox-tab active" data-tab="notifications">Notificaciones</button>
+            <button class="inbox-tab" data-tab="messages">Mensajes</button>
+        </div>
+        
+        <!-- Contenido de Notificaciones -->
+        <div class="inbox-content" id="notifications-content">
+            <div class="notification-item">
+                <div class="notif-icon like">❤️</div>
+                <div class="notif-text">
+                    <strong>@maria_gomez</strong> dio like a tu video
+                    <span class="notif-time">hace 5 min</span>
+                </div>
+            </div>
+            <div class="notification-item">
+                <div class="notif-icon comment">💬</div>
+                <div class="notif-text">
+                    <strong>@carlos_99</strong> comentó: "¡Increíble!"
+                    <span class="notif-time">hace 15 min</span>
+                </div>
+            </div>
+            <div class="notification-item">
+                <div class="notif-icon follow">👤</div>
+                <div class="notif-text">
+                    <strong>@lucia_fernandez</strong> empezó a seguirte
+                    <span class="notif-time">hace 1 hora</span>
+                </div>
+            </div>
+            <div class="notification-item">
+                <div class="notif-icon like">❤️</div>
+                <div class="notif-text">
+                    <strong>@pedro_sanchez</strong> dio like a tu video
+                    <span class="notif-time">hace 2 horas</span>
+                </div>
+            </div>
+            <div class="notification-item">
+                <div class="notif-icon mention">📢</div>
+                <div class="notif-text">
+                    <strong>@ana_lopez</strong> te mencionó en un comentario
+                    <span class="notif-time">hace 3 horas</span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Contenido de Mensajes/Chats -->
+        <div class="inbox-content hidden" id="messages-content">
+            <div class="chat-item" data-chat="1">
+                <div class="chat-avatar">👩</div>
+                <div class="chat-info">
+                    <div class="chat-name">María Gómez</div>
+                    <div class="chat-preview">¡Hola! ¿Qué tal estás?</div>
+                </div>
+                <div class="chat-time">10:30</div>
+            </div>
+            <div class="chat-item" data-chat="2">
+                <div class="chat-avatar">👨</div>
+                <div class="chat-info">
+                    <div class="chat-name">Carlos 99</div>
+                    <div class="chat-preview">¿Cuándo subes el próximo video?</div>
+                </div>
+                <div class="chat-time">09:15</div>
+            </div>
+            <div class="chat-item" data-chat="3">
+                <div class="chat-avatar">👧</div>
+                <div class="chat-info">
+                    <div class="chat-name">Lucía Fernández</div>
+                    <div class="chat-preview">Me encantó tu último contenido 🔥</div>
+                </div>
+                <div class="chat-time">Ayer</div>
+            </div>
+            <div class="chat-item" data-chat="4">
+                <div class="chat-avatar">👦</div>
+                <div class="chat-info">
+                    <div class="chat-name">Pedro Sánchez</div>
+                    <div class="chat-preview">Gracias por el follow!</div>
+                </div>
+                <div class="chat-time">Ayer</div>
+            </div>
+            <div class="chat-item" data-chat="5">
+                <div class="chat-avatar">👩‍🦰</div>
+                <div class="chat-info">
+                    <div class="chat-name">Ana López</div>
+                    <div class="chat-preview">Oye, ¿me puedes ayudar con...?</div>
+                </div>
+                <div class="chat-time">Lun</div>
+            </div>
+        </div>
+        
+        <!-- Chat individual (overlay) -->
+        <div class="chat-overlay hidden" id="chat-overlay">
+            <div class="chat-overlay-header">
+                <button class="back-to-inbox" id="back-to-inbox">
+                    <svg viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/>
+                    </svg>
+                </button>
+                <div class="chat-overlay-avatar" id="chat-overlay-avatar">👤</div>
+                <span class="chat-overlay-name" id="chat-overlay-name">Usuario</span>
+            </div>
+            <div class="chat-overlay-messages" id="chat-overlay-messages">
+                <!-- Mensajes cargados dinámicamente -->
+            </div>
+            <div class="chat-overlay-input">
+                <input type="text" id="chat-input" placeholder="Escribe un mensaje...">
+                <button id="chat-send-btn">Enviar</button>
+            </div>
+        </div>
+        
+        <nav class="bottom-nav yellow-nav">
+            <button class="nav-btn active" data-screen="inbox">
+                <svg viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M19 9h-2V5a1 1 0 0 0-1-1H8a1 1 0 0 0-1 1v4H5a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-8a1 1 0 0 0-1-1zM9 5h6v4H9V5zm8 13H7v-7h10v7z"/>
+                </svg>
+                <span class="nav-label">Bandeja</span>
+            </button>
+            <button class="nav-btn" data-screen="home">
+                <svg viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12 3L2 12h3v8h6v-6h2v6h6v-8h3L12 3zm0 14.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+                </svg>
+                <span class="nav-label">Inicio</span>
+            </button>
+            <button class="nav-btn create-btn" data-screen="creator">
+                <svg viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
+                </svg>
+            </button>
+            <button class="nav-btn" data-screen="profile">
+                <div class="profile-avatar">🐱</div>
+                <span class="nav-label">Perfil</span>
+            </button>
+        </nav>
+    </div>
+
+    <!-- Pantalla del Creador de Videos -->
+    <div id="creator-screen" class="screen">
+        <div class="creator-simple">
+            <button class="creator-close" data-screen="home">✕</button>
+            
+            <div class="creator-logo-container">
+                <div class="creator-logo">
+                    <div class="creator-square white"></div>
+                    <div class="creator-square yellow"></div>
+                </div>
+            </div>
+            
+            <h1 class="creator-title">Subir Video</h1>
+            
+            <input type="file" id="video-upload" accept="video/*" hidden>
+            <button class="creator-upload-btn" id="upload-btn">📁 Subir Archivo</button>
+            
+            <div class="upload-progress hidden" id="upload-progress">
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progress-fill"></div>
+                </div>
+                <span id="progress-text">Subiendo 0%</span>
+            </div>
+            
+            <div class="upload-success hidden" id="upload-success">
+                <div class="success-icon">✅</div>
+                <p>¡Video listo para publicar!</p>
+                <button class="publish-btn" id="publish-btn">Publicar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pantalla de Perfil / Ajustes -->
+    <div id="profile-screen" class="screen">
+        <div class="header profile-header">
+            <button class="help-btn">?</button>
+            <button class="settings-btn">⚙️</button>
+        </div>
+        <div class="profile-content">
+            <div class="profile-info">
+                <div class="profile-pic-large">🐱</div>
+                <h2>@Usuario</h2>
+                <div class="stats">
+                    <div class="stat">
+                        <span class="stat-number">1.2K</span>
+                        <span class="stat-label">Seguidores</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-number">543</span>
+                        <span class="stat-label">Seguidos</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-number">15.6K</span>
+                        <span class="stat-label">Me gusta</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="settings-menu">
+                <button class="settings-item">Privacidad de la Cuenta</button>
+                <button class="settings-item">Foto de Perfil</button>
+                <button class="settings-item">Cuentas bloqueadas</button>
+                <button class="settings-item">Tiempo en pantalla</button>
+                <button class="settings-item">Preferencias de contenido</button>
+                <button class="settings-item">Cuenta de Empresa</button>
+            </div>
+        </div>
+        <nav class="bottom-nav yellow-nav">
+            <button class="nav-btn" data-screen="inbox">
+                <svg viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M19 9h-2V5a1 1 0 0 0-1-1H8a1 1 0 0 0-1 1v4H5a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-8a1 1 0 0 0-1-1zM9 5h6v4H9V5zm8 13H7v-7h10v7z"/>
+                </svg>
+                <span class="nav-label">Bandeja</span>
+            </button>
+            <button class="nav-btn" data-screen="home">
+                <svg viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12 3L2 12h3v8h6v-6h2v6h6v-8h3L12 3zm0 14.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+                </svg>
+                <span class="nav-label">Inicio</span>
+            </button>
+            <button class="nav-btn create-btn" data-screen="creator">
+                <svg viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
+                </svg>
+            </button>
+            <button class="nav-btn active" data-screen="profile">
+                <div class="profile-avatar">🐱</div>
+                <span class="nav-label">Perfil</span>
+            </button>
+        </nav>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
