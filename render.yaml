@@ -1,7 +1,7 @@
 services:
-  # Servicio Web para el backend
+  # Servicio Web único para backend + frontend
   - type: web
-    name: dopmax-backend
+    name: dopmax
     env: node
     region: frankfurt
     plan: free
@@ -16,19 +16,6 @@ services:
         fromDatabase:
           name: dopmax-db
           property: connectionString
-
-  # Servicio para archivos estáticos (frontend)
-  - type: static
-    name: dopmax-frontend
-    env: static
-    region: frankfurt
-    plan: free
-    buildCommand: echo "No build needed"
-    publishDir: .
-    routes:
-      - type: rewrite
-        source: /*
-        destination: /index.html
 
 databases:
   - name: dopmax-db

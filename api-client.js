@@ -3,9 +3,9 @@
  * Este archivo permite la comunicación con el servidor backend
  */
 
-// Configuración de la API
+// Configuración de la API - usa ruta relativa (mismo dominio frontend/backend)
 const API_CONFIG = {
-    baseURL: process.env.API_URL || 'http://localhost:3000/api',
+    baseURL: '/api',
     timeout: 10000
 };
 

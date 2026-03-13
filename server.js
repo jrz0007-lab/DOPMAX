@@ -18,7 +18,9 @@ const PORT = process.env.PORT || 3000;
 // Configuración de middleware
 app.use(cors());
 app.use(express.json());
-app.use(express.static('public'));
+
+// Servir archivos estáticos desde el directorio actual (frontend)
+app.use(express.static(__dirname));
 
 // Configuración de PostgreSQL
 const pool = new Pool({
@@ -725,6 +727,15 @@ app.get('/api/users/search/:query', async (req, res) => {
         console.error('Error buscando usuarios:', error);
         res.status(500).json({ error: 'Error en el servidor' });
     }
+});
+
+// ============================================
+// RUTA PARA SERVICIO DEL FRONTEND
+// ============================================
+
+// Servir index.html para todas las rutas que no son de la API
+app.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname, 'index.html'));
 });
 
 // ============================================
