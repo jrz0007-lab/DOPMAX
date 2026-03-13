@@ -22,18 +22,18 @@ app.use(express.json());
 // Servir archivos estáticos desde el directorio actual (frontend)
 app.use(express.static(__dirname));
 
-// Configuración de PostgreSQL (solo en producción)
+// Configuración de PostgreSQL
 const isProduction = process.env.NODE_ENV === 'production' && process.env.DATABASE_URL;
 
 let pool;
-if (isProduction) {
+if (process.env.DATABASE_URL) {
     pool = new Pool({
         connectionString: process.env.DATABASE_URL,
-        ssl: { rejectUnauthorized: false }
+        ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
     });
-    console.log('📊 Conectado a PostgreSQL (producción)');
+    console.log('📊 Conectado a PostgreSQL:', process.env.NODE_ENV === 'production' ? '(producción)' : '(local)');
 } else {
-    console.log('⚠️  Modo desarrollo: Sin base de datos (usa localStorage en el frontend)');
+    console.log('⚠️  DATABASE_URL no configurada - la API no estará disponible');
 }
 
 // Configuración de multer para subida de videos
@@ -71,8 +71,8 @@ const upload = multer({
 // ============================================
 
 async function createTables() {
-    if (!isProduction || !pool) {
-        console.log('⚠️  Tablas solo se crean en producción (Render)');
+    if (!pool) {
+        console.log('⚠️  No hay conexión a base de datos');
         return;
     }
 
@@ -179,11 +179,10 @@ async function createTables() {
 
 // Middleware para verificar BD en todas las rutas /api
 app.use('/api', (req, res, next) => {
-    if (!isProduction || !pool) {
+    if (!pool) {
         return res.status(503).json({ 
             error: 'Base de datos no configurada',
-            hint: 'En desarrollo local, usa el frontend con localStorage',
-            production: 'Configura DATABASE_URL en Render para usar la API'
+            hint: 'Agrega DATABASE_URL en las variables de entorno de Render'
         });
     }
     next();

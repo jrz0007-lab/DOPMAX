@@ -9,6 +9,9 @@ const API_CONFIG = {
     timeout: 10000
 };
 
+// Detectar si estamos en producción (Render)
+const isProduction = window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1';
+
 // Cliente API
 const API = {
     // ============================================
