@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
@@ -7,7 +7,6 @@
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <!-- Pantalla de Carga -->
     <div id="loading-screen" class="screen active">
         <div class="logo-container">
             <div class="logo">
@@ -17,53 +16,185 @@
         </div>
     </div>
 
-    <!-- Página Principal - Home con videos tipo DVD -->
+    <div id="auth-screen" class="screen">
+        <div class="auth-container">
+            <div class="auth-logo-container">
+                <div class="auth-logo">
+                    <div class="auth-square white"></div>
+                    <div class="auth-square yellow"></div>
+                </div>
+            </div>
+            <h1 class="auth-title">DOPMAX</h1>
+            
+            <div id="login-form" class="auth-form">
+                <h2>Iniciar Sesion</h2>
+                <div class="form-group">
+                    <label>Nombre de usuario</label>
+                    <input type="text" id="login-username" placeholder="Tu nombre unico" autocomplete="off">
+                </div>
+                <div class="form-group">
+                    <label>Contrasena</label>
+                    <input type="password" id="login-password" placeholder="Tu contrasena" autocomplete="off">
+                </div>
+                <button class="auth-btn" id="login-btn">Entrar</button>
+                <p class="auth-switch">No tienes cuenta? <span id="show-register">Registrate</span></p>
+                <p class="auth-error hidden" id="login-error"></p>
+            </div>
+            
+            <div id="register-form" class="auth-form hidden">
+                <h2>Crear Cuenta</h2>
+                <div class="form-group">
+                    <label>Nombre de usuario (unico)</label>
+                    <input type="text" id="register-username" placeholder="Elige un nombre unico" autocomplete="off">
+                </div>
+                <div class="form-group">
+                    <label>Contrasena</label>
+                    <input type="password" id="register-password" placeholder="Crea una contrasena" autocomplete="off">
+                </div>
+                <div class="form-group">
+                    <label>Confirmar contrasena</label>
+                    <input type="password" id="register-confirm" placeholder="Confirma tu contrasena" autocomplete="off">
+                </div>
+                <button class="auth-btn" id="register-btn">Registrarse</button>
+                <p class="auth-switch">Ya tienes cuenta? <span id="show-login">Inicia sesion</span></p>
+                <p class="auth-error hidden" id="register-error"></p>
+            </div>
+        </div>
+    </div>
+
     <div id="home-screen" class="screen">
         <div class="top-tabs">
-            <span class="tab" data-tab="seguidos">Seguidos</span>
-            <span class="separator">|</span>
-            <span class="tab active" data-tab="parati">Para Ti</span>
+            <span class="user-info-tab" id="user-info-tab">@<span id="current-username">Usuario</span></span>
+            <button class="logout-btn" id="logout-btn">Salir</button>
+            <button class="roulette-btn" id="roulette-btn">
+                <span class="roulette-icon">🎰</span>
+                <span class="roulette-text">Casino</span>
+            </button>
         </div>
         
         <div class="dvd-videos-container" id="dvd-container">
-            <!-- Logo de fondo -->
             <div class="background-logo">
                 <div class="bg-logo-square white"></div>
                 <div class="bg-logo-square yellow"></div>
             </div>
             
-            <!-- Video 1 -->
             <div class="dvd-video" id="video1" data-vx="0.3" data-vy="0.25">
+                <button class="video-close-btn" data-video="video1">X</button>
                 <video class="video-element" autoplay loop muted playsinline>
-                    <source src="videos/13º112.mp4" type="video/mp4">
+                    <source src="" type="video/mp4">
                 </video>
                 <div class="video-overlay">
                     <div class="video-user">@musicista</div>
+                    <button class="video-comment-btn" data-video="video1">💬 Comentar</button>
                 </div>
             </div>
 
-            <!-- Video 2 -->
             <div class="dvd-video" id="video2" data-vx="-0.25" data-vy="0.3">
+                <button class="video-close-btn" data-video="video2">X</button>
                 <video class="video-element" autoplay loop muted playsinline>
-                    <source src="videos/314141.mp4" type="video/mp4">
+                    <source src="" type="video/mp4">
                 </video>
                 <div class="video-overlay">
                     <div class="video-user">@viral_clips</div>
+                    <button class="video-comment-btn" data-video="video2">💬 Comentar</button>
                 </div>
             </div>
 
-            <!-- Video 3 -->
             <div class="dvd-video" id="video3" data-vx="0.28" data-vy="-0.22">
+                <button class="video-close-btn" data-video="video3">X</button>
                 <video class="video-element" autoplay loop muted playsinline>
-                    <source src="videos/Download (1).mp4" type="video/mp4">
+                    <source src="" type="video/mp4">
                 </video>
                 <div class="video-overlay">
                     <div class="video-user">@gatos_graciosos</div>
+                    <button class="video-comment-btn" data-video="video3">💬 Comentar</button>
                 </div>
             </div>
         </div>
 
-        <!-- Barra de Navegación -->
+        <!-- Ruleta Overlay -->
+        <div class="roulette-overlay hidden" id="roulette-overlay">
+            <div class="roulette-container">
+                <div class="roulette-header">
+                    <h2>🎰 SUPER RULETA 🎰</h2>
+                    <button class="roulette-close" id="roulette-close">✕</button>
+                </div>
+                <div class="roulette-info">
+                    <div class="balance-display">
+                        <span class="balance-label">Tu Saldo:</span>
+                        <span class="balance-amount" id="roulette-balance">5000</span>
+                        <span class="balance-coin">🪙</span>
+                    </div>
+                    <div class="auto-collect-info">
+                        <span>🕐 +5 monedas cada minuto (auto)</span>
+                    </div>
+                </div>
+                <div class="roulette-wheel-container">
+                    <div class="roulette-wheel" id="roulette-wheel">
+                        <div class="wheel-number" id="wheel-number">0</div>
+                        <div class="wheel-segment-lines"></div>
+                        <div class="wheel-numbers">
+                            <span class="wheel-num" style="--i:0; --angle: 12deg">0</span>
+                            <span class="wheel-num" style="--i:1; --angle: 36deg">1</span>
+                            <span class="wheel-num" style="--i:2; --angle: 60deg">2</span>
+                            <span class="wheel-num" style="--i:3; --angle: 84deg">3</span>
+                            <span class="wheel-num" style="--i:4; --angle: 108deg">4</span>
+                            <span class="wheel-num" style="--i:5; --angle: 132deg">5</span>
+                            <span class="wheel-num" style="--i:6; --angle: 156deg">6</span>
+                            <span class="wheel-num" style="--i:7; --angle: 180deg">7</span>
+                            <span class="wheel-num" style="--i:8; --angle: 204deg">8</span>
+                            <span class="wheel-num" style="--i:9; --angle: 228deg">9</span>
+                            <span class="wheel-num" style="--i:10; --angle: 252deg">10</span>
+                            <span class="wheel-num" style="--i:11; --angle: 276deg">11</span>
+                            <span class="wheel-num" style="--i:12; --angle: 300deg">12</span>
+                            <span class="wheel-num" style="--i:13; --angle: 324deg">13</span>
+                            <span class="wheel-num" style="--i:14; --angle: 348deg">14</span>
+                        </div>
+                    </div>
+                    <div class="wheel-result" id="wheel-result"></div>
+                </div>
+                <div class="betting-options">
+                    <div class="bet-option bet-red" data-color="red">
+                        <span class="bet-label">ROJO</span>
+                        <span class="bet-payout">x2</span>
+                    </div>
+                    <div class="bet-option bet-green" data-color="green">
+                        <span class="bet-label">VERDE</span>
+                        <span class="bet-payout">x14</span>
+                    </div>
+                    <div class="bet-option bet-black" data-color="black">
+                        <span class="bet-label">NEGRO</span>
+                        <span class="bet-payout">x2</span>
+                    </div>
+                </div>
+                <div class="betting-controls">
+                    <div class="bet-amount-control">
+                        <label>Cantidad de apuesta:</label>
+                        <div class="bet-input-group">
+                            <button class="bet-decrease" id="bet-decrease">-50</button>
+                            <input type="number" id="bet-amount" value="50" min="50" max="10000">
+                            <button class="bet-increase" id="bet-increase">+50</button>
+                        </div>
+                        <div class="bet-presets">
+                            <button class="bet-preset" data-amount="50">50</button>
+                            <button class="bet-preset" data-amount="100">100</button>
+                            <button class="bet-preset" data-amount="500">500</button>
+                            <button class="bet-preset" data-amount="1000">1K</button>
+                            <button class="bet-preset" data-amount="5000">5K</button>
+                            <button class="bet-preset" data-amount="10000">10K</button>
+                        </div>
+                    </div>
+                    <div class="current-bet-display">
+                        <span>Apuesta actual: </span>
+                        <span id="current-bet-color">Ninguna</span>
+                        <span id="current-bet-amount">0</span>
+                        <span>🪙</span>
+                    </div>
+                    <button class="spin-btn" id="spin-btn">GIRAR RULETA</button>
+                </div>
+            </div>
+        </div>
+
         <nav class="bottom-nav">
             <button class="nav-btn" data-screen="inbox">
                 <svg viewBox="0 0 24 24" fill="currentColor">
@@ -77,7 +208,6 @@
                 </svg>
                 <span class="nav-label">Inicio</span>
             </button>
-            <!-- Botón central de comentarios (oculto por defecto) -->
             <button class="nav-btn comment-nav-btn hidden" id="comment-nav-btn" data-action="open-comments">
                 <svg viewBox="0 0 24 24" fill="currentColor">
                     <path d="M20 2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h14l4 4V4c0-1.1-.9-2-2-2zm-2 12H6v-2h12v2zm0-3H6V9h12v2zm0-3H6V6h12v2z"/>
@@ -89,123 +219,74 @@
                 </svg>
             </button>
             <button class="nav-btn" data-screen="profile">
-                <div class="profile-avatar">🐱</div>
+                <div class="profile-avatar">ðŸ±</div>
                 <span class="nav-label">Perfil</span>
             </button>
         </nav>
     </div>
 
-    <!-- Panel de Comentarios (overlay) -->
     <div id="comments-panel" class="comments-panel">
         <div class="comments-header">
             <span class="comments-title">Comentarios</span>
-            <button class="close-comments" id="close-comments">✕</button>
+            <button class="close-comments" id="close-comments">X</button>
         </div>
-        <div class="comments-list" id="comments-list">
-            <!-- Los comentarios se cargarán dinámicamente -->
-        </div>
+        <div class="comments-list" id="comments-list"></div>
         <div class="comments-input-container">
             <input type="text" class="comments-input" id="comment-input" placeholder="Escribe un comentario...">
             <button class="send-comment" id="send-comment">Enviar</button>
         </div>
     </div>
 
-    <!-- Pantalla de Bandeja de Entrada -->
     <div id="inbox-screen" class="screen">
         <div class="inbox-header">
             <h2>Bandeja de Entrada</h2>
+            <span class="room-indicator" id="room-indicator">Sala: Global</span>
         </div>
         
-        <!-- Pestañas de la bandeja -->
         <div class="inbox-tabs">
             <button class="inbox-tab active" data-tab="notifications">Notificaciones</button>
             <button class="inbox-tab" data-tab="messages">Mensajes</button>
         </div>
         
-        <!-- Contenido de Notificaciones -->
         <div class="inbox-content" id="notifications-content">
             <div class="notification-item">
-                <div class="notif-icon like">❤️</div>
+                <div class="notif-icon like">â¤ï¸</div>
                 <div class="notif-text">
                     <strong>@maria_gomez</strong> dio like a tu video
                     <span class="notif-time">hace 5 min</span>
                 </div>
             </div>
             <div class="notification-item">
-                <div class="notif-icon comment">💬</div>
+                <div class="notif-icon comment">ðŸ’¬</div>
                 <div class="notif-text">
-                    <strong>@carlos_99</strong> comentó: "¡Increíble!"
+                    <strong>@carlos_99</strong> comento: "Â¡Increible!"
                     <span class="notif-time">hace 15 min</span>
                 </div>
             </div>
             <div class="notification-item">
-                <div class="notif-icon follow">👤</div>
+                <div class="notif-icon follow">ðŸ‘¤</div>
                 <div class="notif-text">
-                    <strong>@lucia_fernandez</strong> empezó a seguirte
+                    <strong>@lucia_fernandez</strong> empezo a seguirte
                     <span class="notif-time">hace 1 hora</span>
                 </div>
             </div>
-            <div class="notification-item">
-                <div class="notif-icon like">❤️</div>
-                <div class="notif-text">
-                    <strong>@pedro_sanchez</strong> dio like a tu video
-                    <span class="notif-time">hace 2 horas</span>
-                </div>
-            </div>
-            <div class="notification-item">
-                <div class="notif-icon mention">📢</div>
-                <div class="notif-text">
-                    <strong>@ana_lopez</strong> te mencionó en un comentario
-                    <span class="notif-time">hace 3 horas</span>
-                </div>
-            </div>
         </div>
         
-        <!-- Contenido de Mensajes/Chats -->
         <div class="inbox-content hidden" id="messages-content">
-            <div class="chat-item" data-chat="1">
-                <div class="chat-avatar">👩</div>
-                <div class="chat-info">
-                    <div class="chat-name">María Gómez</div>
-                    <div class="chat-preview">¡Hola! ¿Qué tal estás?</div>
-                </div>
-                <div class="chat-time">10:30</div>
-            </div>
-            <div class="chat-item" data-chat="2">
-                <div class="chat-avatar">👨</div>
-                <div class="chat-info">
-                    <div class="chat-name">Carlos 99</div>
-                    <div class="chat-preview">¿Cuándo subes el próximo video?</div>
-                </div>
-                <div class="chat-time">09:15</div>
-            </div>
-            <div class="chat-item" data-chat="3">
-                <div class="chat-avatar">👧</div>
-                <div class="chat-info">
-                    <div class="chat-name">Lucía Fernández</div>
-                    <div class="chat-preview">Me encantó tu último contenido 🔥</div>
-                </div>
-                <div class="chat-time">Ayer</div>
-            </div>
-            <div class="chat-item" data-chat="4">
-                <div class="chat-avatar">👦</div>
-                <div class="chat-info">
-                    <div class="chat-name">Pedro Sánchez</div>
-                    <div class="chat-preview">Gracias por el follow!</div>
-                </div>
-                <div class="chat-time">Ayer</div>
-            </div>
-            <div class="chat-item" data-chat="5">
-                <div class="chat-avatar">👩‍🦰</div>
-                <div class="chat-info">
-                    <div class="chat-name">Ana López</div>
-                    <div class="chat-preview">Oye, ¿me puedes ayudar con...?</div>
-                </div>
-                <div class="chat-time">Lun</div>
-            </div>
+    <!-- Buscador de usuarios -->
+    <div class="user-search-container">
+        <div class="search-input-wrapper">
+            <input type="text" id="user-search-input" placeholder="Buscar usuarios..." autocomplete="off">
+            <button id="search-btn">ðŸ”</button>
         </div>
+        <div class="search-results hidden" id="search-results"></div>
+    </div>
+    
+    <!-- Chats existentes -->
+    <div class="chats-section-title">Tus Chats</div>
+    <div id="user-chats-list"></div>
+</div>
         
-        <!-- Chat individual (overlay) -->
         <div class="chat-overlay hidden" id="chat-overlay">
             <div class="chat-overlay-header">
                 <button class="back-to-inbox" id="back-to-inbox">
@@ -213,12 +294,10 @@
                         <path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/>
                     </svg>
                 </button>
-                <div class="chat-overlay-avatar" id="chat-overlay-avatar">👤</div>
+                <div class="chat-overlay-avatar" id="chat-overlay-avatar">ðŸ‘¤</div>
                 <span class="chat-overlay-name" id="chat-overlay-name">Usuario</span>
             </div>
-            <div class="chat-overlay-messages" id="chat-overlay-messages">
-                <!-- Mensajes cargados dinámicamente -->
-            </div>
+            <div class="chat-overlay-messages" id="chat-overlay-messages"></div>
             <div class="chat-overlay-input">
                 <input type="text" id="chat-input" placeholder="Escribe un mensaje...">
                 <button id="chat-send-btn">Enviar</button>
@@ -244,54 +323,47 @@
                 </svg>
             </button>
             <button class="nav-btn" data-screen="profile">
-                <div class="profile-avatar">🐱</div>
+                <div class="profile-avatar">ðŸ±</div>
                 <span class="nav-label">Perfil</span>
             </button>
         </nav>
     </div>
 
-    <!-- Pantalla del Creador de Videos -->
     <div id="creator-screen" class="screen">
         <div class="creator-simple">
-            <button class="creator-close" data-screen="home">✕</button>
-            
+            <button class="creator-close" data-screen="home">X</button>
             <div class="creator-logo-container">
                 <div class="creator-logo">
                     <div class="creator-square white"></div>
                     <div class="creator-square yellow"></div>
                 </div>
             </div>
-            
             <h1 class="creator-title">Subir Video</h1>
-            
             <input type="file" id="video-upload" accept="video/*" hidden>
-            <button class="creator-upload-btn" id="upload-btn">📁 Subir Archivo</button>
-            
+            <button class="creator-upload-btn" id="upload-btn">ðŸ“ Subir Archivo</button>
             <div class="upload-progress hidden" id="upload-progress">
                 <div class="progress-bar">
                     <div class="progress-fill" id="progress-fill"></div>
                 </div>
                 <span id="progress-text">Subiendo 0%</span>
             </div>
-            
             <div class="upload-success hidden" id="upload-success">
-                <div class="success-icon">✅</div>
-                <p>¡Video listo para publicar!</p>
+                <div class="success-icon">âœ…</div>
+                <p>Â¡Video listo para publicar!</p>
                 <button class="publish-btn" id="publish-btn">Publicar</button>
             </div>
         </div>
     </div>
 
-    <!-- Pantalla de Perfil / Ajustes -->
     <div id="profile-screen" class="screen">
         <div class="header profile-header">
             <button class="help-btn">?</button>
-            <button class="settings-btn">⚙️</button>
+            <button class="settings-btn">âš™ï¸</button>
         </div>
         <div class="profile-content">
             <div class="profile-info">
-                <div class="profile-pic-large">🐱</div>
-                <h2>@Usuario</h2>
+                <div class="profile-pic-large">ðŸ±</div>
+                <h2 id="profile-username">@Usuario</h2>
                 <div class="stats">
                     <div class="stat">
                         <span class="stat-number">1.2K</span>
@@ -315,6 +387,7 @@
                 <button class="settings-item">Tiempo en pantalla</button>
                 <button class="settings-item">Preferencias de contenido</button>
                 <button class="settings-item">Cuenta de Empresa</button>
+                <button class="settings-item" id="logout-settings">Cerrar Sesion</button>
             </div>
         </div>
         <nav class="bottom-nav yellow-nav">
@@ -336,12 +409,15 @@
                 </svg>
             </button>
             <button class="nav-btn active" data-screen="profile">
-                <div class="profile-avatar">🐱</div>
+                <div class="profile-avatar">ðŸ±</div>
                 <span class="nav-label">Perfil</span>
             </button>
         </nav>
     </div>
 
+    <!-- API Client para backend -->
+    <script src="api-client.js"></script>
     <script src="script.js"></script>
 </body>
 </html>
+
