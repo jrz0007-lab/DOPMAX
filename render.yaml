@@ -1,0 +1,25 @@
+services:
+  # Servicio Web único para backend + frontend
+  - type: web
+    name: dopmax
+    env: node
+    region: frankfurt
+    plan: free
+    buildCommand: npm install
+    startCommand: node server.js
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 3000
+      - key: DATABASE_URL
+        fromDatabase:
+          name: dopmax-db
+          property: connectionString
+
+databases:
+  - name: dopmax-db
+    databaseName: dopmax
+    user: dopmax_user
+    plan: free
+    region: frankfurt

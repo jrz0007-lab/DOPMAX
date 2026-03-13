@@ -1,39 +1,53 @@
-# DOPMAX - Backend
+# DOPMAX - Backend + Frontend
 
-Servidor backend para la aplicación DOPMAX, una plataforma de videos y chats.
+Servidor backend + frontend para la aplicación DOPMAX, una plataforma de videos y chats.
 
-## Despliegue en Render
+## 🚀 Despliegue en Render (PASO A PASO)
 
-### Pasos para desplegar:
+### 1. Sube tu código a GitHub
+- Crea un repositorio en GitHub
+- Sube todos los archivos de esta carpeta
 
-1. **Crear una cuenta en [Render](https://render.com)**
+### 2. Crea el servicio en Render
 
-2. **Crear un nuevo Web Service:**
-   - Conecta tu repositorio de GitHub
-   - Selecciona la carpeta `DOPMAXWEBGG`
+1. Ve a https://dashboard.render.com/
+2. Click en **"New +"** → **"Web Service"**
+3. Conecta tu repositorio de GitHub
 
-3. **Configurar el servicio:**
-   - **Name:** `dopmax-backend` (o el nombre que prefieras)
-   - **Region:** Elige la más cercana a tus usuarios
-   - **Branch:** `main` o `master`
-   - **Root Directory:** Deja vacío si el package.json está en la raíz
-   - **Runtime:** `Node`
-   - **Build Command:** `npm install`
-   - **Start Command:** `node server.js`
+### 3. Configura el servicio
 
-4. **Configurar variables de entorno:**
-   - Ve a la pestaña "Environment"
-   - Agrega `DATABASE_URL` con tu conexión a PostgreSQL
-   - Agrega `NODE_ENV=production`
+| Campo | Valor |
+|-------|-------|
+| **Name** | `dopmax` |
+| **Region** | Frankfurt (o el más cercano) |
+| **Branch** | `main` o `master` |
+| **Root Directory** | (déjalo vacío) |
+| **Runtime** | `Node` |
+| **Build Command** | `npm install` |
+| **Start Command** | `node server.js` |
+| **Instance Type** | `Free` |
 
-5. **Crear base de datos PostgreSQL:**
-   - En Render, crea un nuevo servicio de tipo "PostgreSQL"
-   - Copia la URL de conexión externa
-   - Pégala en la variable `DATABASE_URL` del backend
+### 4. Agrega la base de datos PostgreSQL
 
-6. **Desplegar:**
-   - Render automáticamente construirá y desplegará tu aplicación
-   - Las tablas se crearán automáticamente al iniciar
+1. En la misma página de creación, baja a **"Add Database"**
+2. Click en **"Add Database"**
+3. Configura:
+   - **Name**: `dopmax-db`
+   - **Database Name**: `dopmax`
+   - **User**: `dopmax_user`
+   - **Password**: (genera una segura)
+   - **Region**: Frankfurt (misma que el web service)
+
+### 5. ¡Desplegar!
+
+1. Click en **"Create Web Service"**
+2. Render construirá y desplegará automáticamente
+3. Las tablas se crearán solas al iniciar
+
+### 6. Accede a tu aplicación
+
+- **Frontend**: `https://dopmax-XXXX.onrender.com/`
+- **API**: `https://dopmax-XXXX.onrender.com/api/`
 
 ## Estructura de la Base de Datos
 
@@ -98,7 +112,8 @@ npm run dev
 
 ## URL del API
 
-Una vez desplegado en Render, la API estará disponible en:
-`https://dopmax-backend.onrender.com/api`
+Una vez desplegado en Render:
+- **Frontend:** `https://dopmax.onrender.com/`
+- **API:** `https://dopmax.onrender.com/api`
 
 (Reemplaza con tu URL real de Render)
