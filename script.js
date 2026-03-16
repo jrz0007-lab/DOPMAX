@@ -321,8 +321,13 @@ const DB = {
     }
 };
 
+// Detectar si estamos en producción (Render)
+const isProduction = typeof window !== 'undefined' && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1';
+
 // Initialize app
 document.addEventListener('DOMContentLoaded', () => {
+    console.log('🌐 Modo:', isProduction ? 'Producción (API)' : 'Desarrollo (localStorage)');
+
     // Initialize default users and bots
     DB.initDefaultUsers();
     DB.initBots();
@@ -1253,58 +1258,118 @@ let currentVideoId = null;
 
 function loadVideoComments(videoId) {
     currentVideoId = videoId;
-    const comments = DB.getVideoComments(videoId);
     const commentsList = document.getElementById('comments-list');
-    
+
     if (!commentsList) return;
-    
-    console.log('Cargando comentarios para:', videoId, 'Total:', comments.length);
-    
+
+    // Intentar cargar desde la API en producción
+    if (typeof API !== 'undefined' && isProduction) {
+        API.getVideoComments(videoId)
+            .then(result => {
+                if (result.success && result.comentarios && result.comentarios.length > 0) {
+                    renderComments(comentariosList, result.comentarios);
+                } else {
+                    // Fallback a localStorage
+                    const comments = DB.getVideoComments(videoId);
+                    renderComments(commentsList, comments);
+                }
+            })
+            .catch(err => {
+                console.error('Error cargando comentarios:', err);
+                const comments = DB.getVideoComments(videoId);
+                renderComments(commentsList, comments);
+            });
+    } else {
+        // Usar localStorage (desarrollo)
+        const comments = DB.getVideoComments(videoId);
+        renderComments(commentsList, comments);
+    }
+}
+
+function renderComments(commentsList, comments) {
+    console.log('Cargando comentarios:', comments.length);
+
     if (comments.length === 0) {
         commentsList.innerHTML = '<div class="no-comments">Sé el primero en comentar</div>';
         return;
     }
-    
+
     commentsList.innerHTML = '';
     comments.forEach(comment => {
         const commentEl = document.createElement('div');
         commentEl.className = 'comment-item';
         commentEl.innerHTML = `
-            <div class="comment-avatar">${comment.avatar || '👤'}</div>
+            <div class="comment-avatar">${comment.avatar || comment.user_avatar || '👤'}</div>
             <div class="comment-content">
-                <div class="comment-user">${comment.username}</div>
-                <div class="comment-text">${comment.text}</div>
-                <div class="comment-time">${comment.time}</div>
+                <div class="comment-user">${comment.username || comment.usuario}</div>
+                <div class="comment-text">${comment.text || comment.contenido}</div>
+                <div class="comment-time">${comment.time || formatTimestamp(comment.created_at)}</div>
             </div>
         `;
         commentsList.appendChild(commentEl);
     });
 }
 
+// Formatear timestamp de PostgreSQL
+function formatTimestamp(timestamp) {
+    if (!timestamp) return '';
+    const date = new Date(timestamp);
+    return date.getHours().toString().padStart(2, '0') + ':' + date.getMinutes().toString().padStart(2, '0');
+}
+
 function sendVideoComment() {
     if (!currentVideoId) return;
-    
+
     const input = document.getElementById('comment-input');
     const text = input.value.trim();
     if (!text) return;
-    
+
     const currentUser = DB.getCurrentUser();
+    if (!currentUser) {
+        alert('Debes iniciar sesión para comentar');
+        return;
+    }
+
+    // Intentar usar la API primero (producción)
+    if (typeof API !== 'undefined' && isProduction) {
+        API.addVideoComment(currentVideoId, currentUser.username, text)
+            .then(result => {
+                if (result.success) {
+                    input.value = '';
+                    loadVideoComments(currentVideoId);
+                } else {
+                    console.error('Error al comentar:', result.error);
+                    // Fallback a localStorage
+                    saveCommentLocal(currentVideoId, currentUser, text, input);
+                }
+            })
+            .catch(err => {
+                console.error('Error en API:', err);
+                saveCommentLocal(currentVideoId, currentUser, text, input);
+            });
+    } else {
+        // Usar localStorage (desarrollo)
+        saveCommentLocal(currentVideoId, currentUser, text, input);
+    }
+}
+
+function saveCommentLocal(videoId, currentUser, text, input) {
     const now = new Date();
     const time = now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
-    
+
     const comment = {
         id: 'user_' + Date.now(),
-        username: currentUser ? currentUser.username : 'Usuario',
-        avatar: currentUser ? currentUser.avatar : '🐱',
+        username: currentUser.username,
+        avatar: currentUser.avatar || '🐱',
         text: text,
         time: time,
         isBot: false
     };
-    
-    DB.saveVideoComment(currentVideoId, comment);
-    console.log('Comentario guardado:', comment);
+
+    DB.saveVideoComment(videoId, comment);
+    console.log('Comentario guardado (localStorage):', comment);
     input.value = '';
-    loadVideoComments(currentVideoId);
+    loadVideoComments(videoId);
 }
 
 function showCommentsPanel() { 
