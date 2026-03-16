@@ -2103,13 +2103,25 @@ function saveCommentLocal(videoId, currentUser, text, input) {
     loadVideoComments(videoId);
 }
 
-function showCommentsPanel() { 
+function showCommentsPanel() {
     const panel = document.getElementById('comments-panel');
-    if (panel) panel.classList.add('active'); 
+    if (panel) panel.classList.add('active');
+    
+    // Ocultar Pou cuando se abren comentarios
+    const catContainer = document.getElementById('cat-clicker');
+    if (catContainer) catContainer.classList.add('hidden');
 }
-function hideCommentsPanel() { 
+
+function hideCommentsPanel() {
     const panel = document.getElementById('comments-panel');
-    if (panel) panel.classList.remove('active'); 
+    if (panel) panel.classList.remove('active');
+    
+    // Mostrar Pou cuando se cierran comentarios (si estás en home)
+    const catContainer = document.getElementById('cat-clicker');
+    const homeScreen = document.getElementById('home-screen');
+    if (catContainer && homeScreen && homeScreen.classList.contains('active')) {
+        catContainer.classList.remove('hidden');
+    }
 }
 
 // Función para inicializar botones de comentar en videos
