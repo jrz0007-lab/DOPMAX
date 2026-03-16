@@ -1847,7 +1847,7 @@ button, .tab, .dvd-video, .chat-item, .notification-item, .settings-item, .creat
 }
 
 /* ============================================
-   GATO CLICKER GAME - Minimalista
+   POU CLICKER GAME - Minimalista
    ============================================ */
 .cat-clicker-container {
     position: fixed;
@@ -1884,11 +1884,12 @@ button, .tab, .dvd-video, .chat-item, .notification-item, .settings-item, .creat
     transform: scale(1.05);
 }
 
-.cat-svg {
+.pou-image {
     width: 100%;
     height: 100%;
+    object-fit: contain;
     filter: drop-shadow(0 4px 8px rgba(0,0,0,0.3));
-    transition: all 0.3s;
+    transition: filter 0.3s;
 }
 
 /* Contador flotante estilo Startrak/Bongo Cat */
@@ -1923,58 +1924,32 @@ button, .tab, .dvd-video, .chat-item, .notification-item, .settings-item, .creat
     }
 }
 
-/* Colores del Pou por niveles */
-.pou-body {
-    fill: #c4914d;
-    transition: fill 0.3s;
-}
-
-.pou-eye {
-    fill: #fff;
-}
-
-.pou-pupil {
-    fill: #333;
-}
-
-.pou-eye-shine {
-    fill: #fff;
-}
-
-.pou-paw {
-    fill: #c4914d;
+/* Filtros para niveles del Pou */
+.pou-image.level-1 {
+    filter: drop-shadow(0 4px 8px rgba(0,0,0,0.3));
 }
 
 /* Nivel 2 - Gris */
-.cat-svg.level-2 .pou-body,
-.cat-svg.level-2 .pou-paw {
-    fill: #888888;
+.pou-image.level-2 {
+    filter: drop-shadow(0 4px 15px rgba(168, 168, 168, 0.5)) grayscale(0.8);
 }
 
 /* Nivel 3 - Dorado */
-.cat-svg.level-3 .pou-body,
-.cat-svg.level-3 .pou-paw {
-    fill: #ffd700;
-    filter: drop-shadow(0 0 10px rgba(255, 215, 0, 0.8));
+.pou-image.level-3 {
+    filter: drop-shadow(0 4px 20px rgba(255, 215, 0, 0.8)) sepia(1) saturate(2);
 }
 
 /* Nivel 4 - Azul */
-.cat-svg.level-4 .pou-body,
-.cat-svg.level-4 .pou-paw {
-    fill: #00d4ff;
-    filter: drop-shadow(0 0 10px rgba(0, 212, 255, 0.8));
+.pou-image.level-4 {
+    filter: drop-shadow(0 4px 20px rgba(0, 212, 255, 0.8)) hue-rotate(180deg);
 }
 
 /* Nivel 5 - Rosa */
-.cat-svg.level-5 .pou-body,
-.cat-svg.level-5 .pou-paw {
-    fill: #ff00ff;
-    filter: drop-shadow(0 0 12px rgba(255, 0, 255, 0.9));
+.pou-image.level-5 {
+    filter: drop-shadow(0 4px 25px rgba(255, 0, 255, 0.9)) hue-rotate(280deg) saturate(2);
 }
 
 /* Nivel 6 - Verde */
-.cat-svg.level-6 .pou-body,
-.cat-svg.level-6 .pou-paw {
-    fill: #00ff00;
-    filter: drop-shadow(0 0 15px rgba(0, 255, 0, 1));
+.pou-image.level-6 {
+    filter: drop-shadow(0 4px 30px rgba(0, 255, 0, 1)) hue-rotate(120deg) saturate(3);
 }

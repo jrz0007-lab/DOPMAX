@@ -564,9 +564,9 @@ function createFloatingNumber(x, y) {
 }
 
 function updateCatLevel() {
-    const catSvg = document.getElementById('cat-svg');
+    const pouImage = document.getElementById('pou-image');
     
-    if (!catSvg) return;
+    if (!pouImage) return;
     
     // Encontrar nivel actual
     let currentLevel = CAT_LEVELS[0];
@@ -577,7 +577,7 @@ function updateCatLevel() {
     }
     
     // Actualizar clase (solo color, sin texto)
-    catSvg.className = 'cat-svg ' + currentLevel.name;
+    pouImage.className = 'pou-image ' + currentLevel.name;
 }
 
 function handleLogin() {
