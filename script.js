@@ -177,12 +177,12 @@ const DB = {
             { id: '2', username: 'carlos_99', password: '1234', room: 'Global', avatar: '👨', createdAt: new Date().toISOString() },
             { id: '3', username: 'lucia_fernandez', password: '1234', room: 'Global', avatar: '👧', createdAt: new Date().toISOString() },
             { id: '4', username: 'pedro_sanchez', password: '1234', room: 'Musica', avatar: '👦', createdAt: new Date().toISOString() },
-            { id: '5', username: 'ana_lopez', password: '1234', room: 'Gaming', avatar: '👩‍🦰', createdAt: new Date().toISOString() },
+            { id: '5', username: 'ana_lopez', password: '1234', room: 'Musica', avatar: '👩', createdAt: new Date().toISOString() },
             { id: '6', username: 'dj_ricardo', password: '1234', room: 'Musica', avatar: '🎧', createdAt: new Date().toISOString() },
             { id: '7', username: 'guitarhero', password: '1234', room: 'Musica', avatar: '🎸', createdAt: new Date().toISOString() },
-            { id: '8', username: 'progamer_x', password: '1234', room: 'Gaming', avatar: '🎮', createdAt: new Date().toISOString() },
-            { id: '9', username: 'futbolfan', password: '1234', room: 'Deportes', avatar: '⚽', createdAt: new Date().toISOString() },
-            { id: '10', username: 'chefmaster', password: '1234', room: 'Comida', avatar: '👨‍🍳', createdAt: new Date().toISOString() }
+            { id: '8', username: 'sofia_music', password: '1234', room: 'Musica', avatar: '🎤', createdAt: new Date().toISOString() },
+            { id: '9', username: 'laura_artist', password: '1234', room: 'Musica', avatar: '🎹', createdAt: new Date().toISOString() },
+            { id: '10', username: 'chefmaster', password: '1234', room: 'Global', avatar: '👨‍🍳', createdAt: new Date().toISOString() }
         ];
 
         defaultUsers.forEach(user => DB.saveUser(user));
@@ -204,31 +204,13 @@ const DB = {
                 { id: 2, name: 'Carlos 99', avatar: '👨', lastMessage: '¿Cuándo subes el próximo video?', time: '09:15', isUser: false },
                 { id: 3, name: 'Lucia Fernandez', avatar: '👧', lastMessage: 'Me encantó tu último contenido 🔥', time: 'Ayer', isUser: false },
                 { id: 4, name: 'Pedro Sanchez', avatar: '👦', lastMessage: 'Gracias por el follow!', time: 'Ayer', isUser: false },
-                { id: 5, name: 'Ana Lopez', avatar: '👩‍🦰', lastMessage: 'Oye, ¿me puedes ayudar con...?', time: 'Lun', isUser: false }
+                { id: 5, name: 'Ana Lopez', avatar: '👩', lastMessage: 'Oye, ¿me puedes ayudar con...?', time: 'Lun', isUser: false }
             ],
             'Musica': [
                 { id: 6, name: 'DJ_Ricardo', avatar: '🎧', lastMessage: '¡Esa canción está increíble!', time: '11:00', isUser: false },
                 { id: 7, name: 'GuitarHero', avatar: '🎸', lastMessage: '¿Vamos a jam session?', time: '10:45', isUser: false },
                 { id: 8, name: 'PianoMaster', avatar: '🎹', lastMessage: 'Te mando la partitura', time: '09:30', isUser: false },
                 { id: 9, name: 'BassLine', avatar: '🎵', lastMessage: 'El ritmo está perfecto', time: 'Ayer', isUser: false }
-            ],
-            'Gaming': [
-                { id: 10, name: 'ProGamer_X', avatar: '🎮', lastMessage: '¿Partida hoy?', time: '12:00', isUser: false },
-                { id: 11, name: 'SpeedRun_King', avatar: '🏆', lastMessage: 'Nuevo record mundial!', time: '11:30', isUser: false },
-                { id: 12, name: 'NoobSlayer', avatar: '⚔️', lastMessage: 'Te enseño a jugar', time: '10:00', isUser: false },
-                { id: 13, name: 'CasualPlayer', avatar: '🎲', lastMessage: 'Solo quiero divertirme', time: 'Ayer', isUser: false }
-            ],
-            'Deportes': [
-                { id: 14, name: 'FutbolFan', avatar: '⚽', lastMessage: '¿Viste el partido?', time: '13:00', isUser: false },
-                { id: 15, name: 'GymRat', avatar: '💪', lastMessage: 'Rutina de hoy completada', time: '12:30', isUser: false },
-                { id: 16, name: 'RunnerGirl', avatar: '🏃', lastMessage: '10km en 45min!', time: '11:00', isUser: false },
-                { id: 17, name: 'BasketPro', avatar: '🏀', lastMessage: '¿Cancha a las 5?', time: 'Ayer', isUser: false }
-            ],
-            'Comida': [
-                { id: 18, name: 'ChefMaster', avatar: '👨‍🍳', lastMessage: 'Receta de pasta lista', time: '14:00', isUser: false },
-                { id: 19, name: 'FoodLover', avatar: '🍕', lastMessage: 'El mejor restaurante italiano', time: '13:30', isUser: false },
-                { id: 20, name: 'VeggieLife', avatar: '🥗', lastMessage: 'Ensalada del día', time: '12:00', isUser: false },
-                { id: 21, name: 'DulcePostre', avatar: '🍰', lastMessage: 'Tarta de chocolate casera', time: 'Ayer', isUser: false }
             ]
         };
         return chatSets[roomName] || chatSets['Global'];
@@ -308,7 +290,7 @@ const DB = {
     },
     
     assignRoom: (username) => {
-        const rooms = ['Global', 'Musica', 'Gaming', 'Deportes', 'Comida'];
+        const rooms = ['Global', 'Musica'];
         const user = DB.getUserByUsername(username);
         if (user) {
             const roomIndex = rooms.indexOf(user.room);
@@ -622,9 +604,9 @@ function handleRegister() {
         return;
     }
 
-    const rooms = ['Global', 'Musica', 'Gaming', 'Deportes', 'Comida'];
+    const rooms = ['Global', 'Musica'];
     const randomRoom = rooms[Math.floor(Math.random() * rooms.length)];
-    
+
     const newUser = {
         id: Date.now().toString(),
         username: username,
@@ -683,10 +665,8 @@ function initializeApp(user) {
     // Setup navigation
     setupNavigation();
 
-    // Mostrar gato clicker cuando el usuario está logueado
-    setTimeout(() => {
-        setupCatClicker();
-    }, 300);
+    // Inicializar gato clicker (se mostrará/ocultará según navegación)
+    setupCatClicker();
 
     // Load chats for current room
     loadChatsForRoom(user.room);
@@ -695,7 +675,8 @@ function initializeApp(user) {
 function setupNavigation() {
     const navButtons = document.querySelectorAll('[data-screen]');
     const screens = document.querySelectorAll('.screen:not(#loading-screen):not(#auth-screen)');
-    
+    const catContainer = document.getElementById('cat-clicker');
+
     navButtons.forEach((button) => {
         button.addEventListener('click', () => {
             navigateToScreen(button.getAttribute('data-screen'));
@@ -706,7 +687,15 @@ function setupNavigation() {
         screens.forEach((screen) => screen.classList.remove('active'));
         const targetElement = document.getElementById(screenName + '-screen');
         if (targetElement) targetElement.classList.add('active');
-        if (screenName === 'home') initDVDVideos(); else stopDVDVideos();
+        
+        // Mostrar/Ocultar gato según la pantalla
+        if (screenName === 'home') {
+            initDVDVideos();
+            if (catContainer) catContainer.classList.remove('hidden');
+        } else {
+            stopDVDVideos();
+            if (catContainer) catContainer.classList.add('hidden');
+        }
         hideCommentsPanel();
     }
 
