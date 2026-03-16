@@ -173,6 +173,7 @@ const DB = {
         if (users.length > 0) return; // Ya hay usuarios
 
         const defaultUsers = [
+            { id: '0', username: 'rafa', password: '1234', room: 'Global', avatar: 'R', createdAt: new Date().toISOString() },
             { id: '1', username: 'maria_gomez', password: '1234', room: 'Global', avatar: 'M', createdAt: new Date().toISOString() },
             { id: '2', username: 'carlos_99', password: '1234', room: 'Global', avatar: 'C', createdAt: new Date().toISOString() },
             { id: '3', username: 'lucia_fernandez', password: '1234', room: 'Global', avatar: 'L', createdAt: new Date().toISOString() },
