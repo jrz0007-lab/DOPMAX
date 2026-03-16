@@ -680,7 +680,7 @@ button, .tab, .dvd-video, .chat-item, .notification-item, .settings-item, .creat
     height: 35px;
     justify-content: center;
     align-items: center;
-    margin-top: -12px;
+    margin-top: -20px;
     position: relative;
 }
 
