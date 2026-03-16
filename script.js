@@ -1307,9 +1307,17 @@ function initDVDVideos() {
         const containerWidth = container.clientWidth || window.innerWidth;
         const containerHeight = container.clientHeight || window.innerHeight;
 
+        // Tamaños fijos para los videos
+        const VIDEO_WIDTH = 360;
+        const VIDEO_HEIGHT = 320;
+
         document.querySelectorAll('.dvd-video').forEach((video, index) => {
-            const videoWidth = video.offsetWidth || 200;
-            const videoHeight = video.offsetHeight || 280;
+            // Forzar tamaño correcto
+            video.style.width = VIDEO_WIDTH + 'px';
+            video.style.height = VIDEO_HEIGHT + 'px';
+            
+            const videoWidth = VIDEO_WIDTH;
+            const videoHeight = VIDEO_HEIGHT;
             const startX = Math.random() * (containerWidth - videoWidth);
             const startY = 55 + Math.random() * (containerHeight - videoHeight - 55);
             const baseSpeed = 1.5 + Math.random() * 0.5;
