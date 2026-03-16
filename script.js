@@ -450,12 +450,12 @@ let catLevel = 1;
 let counterTimeout = null;
 
 const CAT_LEVELS = [
-    { level: 1, clicks: 0, name: 'Gato Normal', color: 'level-1' },
-    { level: 2, clicks: 5000, name: 'Gato Pro', color: 'level-2' },
-    { level: 3, clicks: 15000, name: 'Gato Dorado', color: 'level-3' },
-    { level: 4, clicks: 50000, name: 'Gato Diamante', color: 'level-4' },
-    { level: 5, clicks: 100000, name: 'Gato Arcoíris', color: 'level-5' },
-    { level: 6, clicks: 500000, name: 'Gato LEGENDARIO', color: 'level-6' }
+    { level: 1, clicks: 0, name: 'level-1' },
+    { level: 2, clicks: 5000, name: 'level-2' },
+    { level: 3, clicks: 15000, name: 'level-3' },
+    { level: 4, clicks: 50000, name: 'level-4' },
+    { level: 5, clicks: 100000, name: 'level-5' },
+    { level: 6, clicks: 500000, name: 'level-6' }
 ];
 
 function setupCatClicker() {
@@ -464,8 +464,7 @@ function setupCatClicker() {
         const catBtn = document.getElementById('cat-clicker-btn');
         const counter = document.getElementById('cat-counter');
         const counterText = document.getElementById('counter-text');
-        const catImage = document.getElementById('cat-image');
-        const levelDisplay = document.getElementById('cat-level');
+        const catSvg = document.getElementById('cat-svg');
         
         if (!catContainer || !catBtn || !counter || !counterText) return;
         
@@ -506,7 +505,7 @@ function setupCatClicker() {
             }, 5000);
             
             // Efecto de animación
-            catBtn.style.transform = 'scale(0.9)';
+            catBtn.style.transform = 'scale(0.9) rotate(-5deg)';
             setTimeout(() => {
                 catBtn.style.transform = 'scale(1)';
             }, 100);
@@ -518,10 +517,9 @@ function setupCatClicker() {
 }
 
 function updateCatLevel() {
-    const catImage = document.getElementById('cat-image');
-    const levelDisplay = document.getElementById('cat-level');
+    const catSvg = document.getElementById('cat-svg');
     
-    if (!catImage || !levelDisplay) return;
+    if (!catSvg) return;
     
     // Encontrar nivel actual
     let currentLevel = CAT_LEVELS[0];
@@ -531,9 +529,8 @@ function updateCatLevel() {
         }
     }
     
-    // Actualizar clase y texto
-    catImage.className = 'cat-image ' + currentLevel.color;
-    levelDisplay.textContent = currentLevel.name + ' (Nvl ' + currentLevel.level + ')';
+    // Actualizar clase (solo color, sin texto)
+    catSvg.className = 'cat-svg ' + currentLevel.name;
 }
 
 function handleLogin() {

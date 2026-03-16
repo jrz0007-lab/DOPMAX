@@ -419,9 +419,29 @@
     <div class="cat-clicker-container hidden" id="cat-clicker">
         <div class="cat-clicker-counter" id="cat-counter"><span id="counter-text">0</span></div>
         <div class="cat-clicker-btn" id="cat-clicker-btn">
-            <img src="https://png.pngtree.com/png-vector/20230906/ourmid/pngtree-cute-tabby-cat-png-image_10032714.png" alt="Gato" class="cat-image" id="cat-image" />
+            <svg class="cat-svg" viewBox="0 0 100 100" id="cat-svg">
+                <!-- Orejas -->
+                <polygon points="25,15 35,5 40,20" class="cat-ear"/>
+                <polygon points="75,15 65,5 60,20" class="cat-ear"/>
+                <!-- Cabeza -->
+                <ellipse cx="50" cy="55" rx="35" ry="30" class="cat-head"/>
+                <!-- Ojos -->
+                <circle cx="38" cy="50" r="8" class="cat-eye"/>
+                <circle cx="62" cy="50" r="8" class="cat-eye"/>
+                <circle cx="40" cy="52" r="3" class="cat-pupil"/>
+                <circle cx="64" cy="52" r="3" class="cat-pupil"/>
+                <!-- Nariz -->
+                <ellipse cx="50" cy="62" rx="3" ry="2" class="cat-nose"/>
+                <!-- Bigotes -->
+                <line x1="25" y1="60" x2="15" y2="58" class="cat-whisker"/>
+                <line x1="25" y1="65" x2="15" y2="67" class="cat-whisker"/>
+                <line x1="75" y1="60" x2="85" y2="58" class="cat-whisker"/>
+                <line x1="75" y1="65" x2="85" y2="67" class="cat-whisker"/>
+                <!-- Patas -->
+                <ellipse cx="35" cy="85" rx="8" ry="10" class="cat-paw"/>
+                <ellipse cx="65" cy="85" rx="8" ry="10" class="cat-paw"/>
+            </svg>
         </div>
-        <div class="cat-level-display" id="cat-level">Nivel 1</div>
     </div>
 
     <!-- API Client para backend -->
