@@ -646,17 +646,50 @@ function handleRegister() {
 }
 
 function handleLogout() {
-    DB.setCurrentUser(null);
-    showAuthScreen();
+    console.log('Cerrando sesión...');
     
+    DB.setCurrentUser(null);
+    
+    // Ocultar todas las pantallas excepto auth
+    document.querySelectorAll('.screen').forEach(s => {
+        s.classList.remove('active');
+        s.style.display = 'none';
+    });
+    
+    // Mostrar auth screen
+    const authScreen = document.getElementById('auth-screen');
+    const loginForm = document.getElementById('login-form');
+    const registerForm = document.getElementById('register-form');
+    
+    if (authScreen) {
+        authScreen.classList.add('active');
+        authScreen.style.display = 'flex';
+    }
+    if (loginForm) loginForm.classList.remove('hidden');
+    if (registerForm) registerForm.classList.add('hidden');
+    
+    // Ocultar gato
+    const catContainer = document.getElementById('cat-clicker');
+    if (catContainer) catContainer.classList.add('hidden');
+
     // Reset forms
-    document.getElementById('login-username').value = '';
-    document.getElementById('login-password').value = '';
-    document.getElementById('register-username').value = '';
-    document.getElementById('register-password').value = '';
-    document.getElementById('register-confirm').value = '';
-    document.getElementById('login-error').classList.add('hidden');
-    document.getElementById('register-error').classList.add('hidden');
+    const loginUsername = document.getElementById('login-username');
+    const loginPassword = document.getElementById('login-password');
+    const registerUsername = document.getElementById('register-username');
+    const registerPassword = document.getElementById('register-password');
+    const registerConfirm = document.getElementById('register-confirm');
+    const loginError = document.getElementById('login-error');
+    const registerError = document.getElementById('register-error');
+    
+    if (loginUsername) loginUsername.value = '';
+    if (loginPassword) loginPassword.value = '';
+    if (registerUsername) registerUsername.value = '';
+    if (registerPassword) registerPassword.value = '';
+    if (registerConfirm) registerConfirm.value = '';
+    if (loginError) loginError.classList.add('hidden');
+    if (registerError) registerError.classList.add('hidden');
+    
+    console.log('✅ Sesión cerrada correctamente');
 }
 
 function showAuthScreen() {
