@@ -582,8 +582,10 @@ function handleLogin() {
 
     DB.setCurrentUser(user);
     
-    // Forzar recarga para inicializar correctamente
-    window.location.reload();
+    // Inicializar app directamente sin recargar
+    setTimeout(() => {
+        initializeApp(user);
+    }, 200);
 }
 
 function handleRegister() {
@@ -637,8 +639,10 @@ function handleRegister() {
     DB.saveUser(newUser);
     DB.setCurrentUser(newUser);
     
-    // Forzar recarga para inicializar correctamente
-    window.location.reload();
+    // Inicializar app directamente sin recargar
+    setTimeout(() => {
+        initializeApp(newUser);
+    }, 200);
 }
 
 function handleLogout() {
@@ -664,28 +668,41 @@ function showAuthScreen() {
 
 function initializeApp(user) {
     try {
-        // Hide loading and auth screens
+        console.log('Inicializando usuario:', user.username);
+        
+        // Ocultar loading y auth screens
         const loadingScreen = document.getElementById('loading-screen');
         const authScreen = document.getElementById('auth-screen');
+        const homeScreen = document.getElementById('home-screen');
+        
         if (loadingScreen) loadingScreen.classList.remove('active');
+        if (loadingScreen) loadingScreen.style.display = 'none';
         if (authScreen) authScreen.classList.remove('active');
+        if (authScreen) authScreen.style.display = 'none';
+        
+        // Mostrar home screen
+        if (homeScreen) homeScreen.classList.add('active');
+        if (homeScreen) homeScreen.style.display = 'flex';
 
         // Update UI with user info
-        document.getElementById('current-username').textContent = user.username;
-        document.getElementById('profile-username').textContent = '@' + user.username;
-        document.querySelector('.profile-pic-large').textContent = user.avatar;
-        document.querySelector('.profile-avatar').textContent = user.avatar;
+        const currentUsernameEl = document.getElementById('current-username');
+        const profileUsernameEl = document.getElementById('profile-username');
+        const profilePicLarge = document.querySelector('.profile-pic-large');
+        const profileAvatar = document.querySelector('.profile-avatar');
+        
+        if (currentUsernameEl) currentUsernameEl.textContent = user.username;
+        if (profileUsernameEl) profileUsernameEl.textContent = '@' + user.username;
+        if (profilePicLarge) profilePicLarge.textContent = user.avatar;
+        if (profileAvatar) profileAvatar.textContent = user.avatar;
 
         // Update room indicator
-        document.getElementById('room-indicator').textContent = 'Sala: ' + user.room;
-
-        // Show home screen
-        document.getElementById('home-screen').classList.add('active');
+        const roomIndicator = document.getElementById('room-indicator');
+        if (roomIndicator) roomIndicator.textContent = 'Sala: ' + user.room;
 
         // Initialize DVD videos
         setTimeout(() => {
             try { initDVDVideos(); } catch(e) { console.log('DVD init error:', e); }
-        }, 100);
+        }, 300);
 
         // Setup navigation
         setupNavigation();
@@ -697,6 +714,8 @@ function initializeApp(user) {
         setTimeout(() => {
             try { setupCatClicker(); } catch(e) { console.log('Cat init error:', e); }
         }, 500);
+        
+        console.log('✅ Usuario inicializado correctamente');
     } catch(error) {
         console.error('Error en initializeApp:', error);
         showAuthScreen();
