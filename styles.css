@@ -1914,64 +1914,58 @@ button, .tab, .dvd-video, .chat-item, .notification-item, .settings-item, .creat
     }
 }
 
-/* Colores del gato por niveles */
-.cat-ear, .cat-head {
-    fill: #ff9500;
+/* Colores del Pou por niveles */
+.pou-body {
+    fill: #c4914d;
     transition: fill 0.3s;
 }
 
-.cat-eye {
+.pou-eye {
     fill: #fff;
 }
 
-.cat-pupil {
+.pou-pupil {
     fill: #333;
 }
 
-.cat-nose {
-    fill: #ff6b6b;
-}
-
-.cat-whisker {
-    stroke: #fff;
-    stroke-width: 2;
-    stroke-linecap: round;
-}
-
-.cat-paw {
+.pou-eye-shine {
     fill: #fff;
 }
 
+.pou-paw {
+    fill: #c4914d;
+}
+
 /* Nivel 2 - Gris */
-.cat-svg.level-2 .cat-ear,
-.cat-svg.level-2 .cat-head {
-    fill: #a8a8a8;
+.cat-svg.level-2 .pou-body,
+.cat-svg.level-2 .pou-paw {
+    fill: #888888;
 }
 
 /* Nivel 3 - Dorado */
-.cat-svg.level-3 .cat-ear,
-.cat-svg.level-3 .cat-head {
+.cat-svg.level-3 .pou-body,
+.cat-svg.level-3 .pou-paw {
     fill: #ffd700;
     filter: drop-shadow(0 0 10px rgba(255, 215, 0, 0.8));
 }
 
 /* Nivel 4 - Azul */
-.cat-svg.level-4 .cat-ear,
-.cat-svg.level-4 .cat-head {
+.cat-svg.level-4 .pou-body,
+.cat-svg.level-4 .pou-paw {
     fill: #00d4ff;
     filter: drop-shadow(0 0 10px rgba(0, 212, 255, 0.8));
 }
 
 /* Nivel 5 - Rosa */
-.cat-svg.level-5 .cat-ear,
-.cat-svg.level-5 .cat-head {
+.cat-svg.level-5 .pou-body,
+.cat-svg.level-5 .pou-paw {
     fill: #ff00ff;
     filter: drop-shadow(0 0 12px rgba(255, 0, 255, 0.9));
 }
 
 /* Nivel 6 - Verde */
-.cat-svg.level-6 .cat-ear,
-.cat-svg.level-6 .cat-head {
+.cat-svg.level-6 .pou-body,
+.cat-svg.level-6 .pou-paw {
     fill: #00ff00;
     filter: drop-shadow(0 0 15px rgba(0, 255, 0, 1));
 }

@@ -414,30 +414,23 @@
         </nav>
     </div>
 
-    <!-- Gato Clicker Game -->
+    <!-- Pou Clicker Game -->
     <div class="cat-clicker-container hidden" id="cat-clicker">
         <div class="cat-clicker-btn" id="cat-clicker-btn">
             <svg class="cat-svg" viewBox="0 0 100 100" id="cat-svg">
-                <!-- Orejas -->
-                <polygon points="25,15 35,5 40,20" class="cat-ear"/>
-                <polygon points="75,15 65,5 60,20" class="cat-ear"/>
-                <!-- Cabeza -->
-                <ellipse cx="50" cy="55" rx="35" ry="30" class="cat-head"/>
+                <!-- Cuerpo Pou (triángulo redondeado) -->
+                <path d="M 50 5 Q 85 5 85 40 Q 85 85 50 95 Q 15 85 15 40 Q 15 5 50 5" class="pou-body"/>
                 <!-- Ojos -->
-                <circle cx="38" cy="50" r="8" class="cat-eye"/>
-                <circle cx="62" cy="50" r="8" class="cat-eye"/>
-                <circle cx="40" cy="52" r="3" class="cat-pupil"/>
-                <circle cx="64" cy="52" r="3" class="cat-pupil"/>
-                <!-- Nariz -->
-                <ellipse cx="50" cy="62" rx="3" ry="2" class="cat-nose"/>
-                <!-- Bigotes -->
-                <line x1="25" y1="60" x2="15" y2="58" class="cat-whisker"/>
-                <line x1="25" y1="65" x2="15" y2="67" class="cat-whisker"/>
-                <line x1="75" y1="60" x2="85" y2="58" class="cat-whisker"/>
-                <line x1="75" y1="65" x2="85" y2="67" class="cat-whisker"/>
+                <circle cx="35" cy="35" r="10" class="pou-eye"/>
+                <circle cx="65" cy="35" r="10" class="pou-eye"/>
+                <circle cx="38" cy="37" r="4" class="pou-pupil"/>
+                <circle cx="68" cy="37" r="4" class="pou-pupil"/>
+                <!-- Brillo ojos -->
+                <circle cx="40" cy="33" r="2" class="pou-eye-shine"/>
+                <circle cx="70" cy="33" r="2" class="pou-eye-shine"/>
                 <!-- Patas -->
-                <ellipse cx="35" cy="85" rx="8" ry="10" class="cat-paw"/>
-                <ellipse cx="65" cy="85" rx="8" ry="10" class="cat-paw"/>
+                <ellipse cx="35" cy="85" rx="8" ry="6" class="pou-paw"/>
+                <ellipse cx="65" cy="85" rx="8" ry="6" class="pou-paw"/>
             </svg>
             <div class="click-counter" id="click-counter"></div>
         </div>
