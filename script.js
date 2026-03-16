@@ -324,9 +324,18 @@ const DB = {
 // Initialize app
 document.addEventListener('DOMContentLoaded', () => {
     try {
+        // Quitar pantalla de carga inmediatamente
+        const loadingScreen = document.getElementById('loading-screen');
+        if (loadingScreen) {
+            loadingScreen.style.display = 'none';
+        }
+
         // Detectar si estamos en producción (Render)
         const isProduction = window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1';
         console.log('🌐 Modo:', isProduction ? 'Producción (API)' : 'Desarrollo (localStorage)');
+
+        // Mostrar auth screen directamente
+        showAuthScreen();
 
         // Initialize default users and bots
         DB.initDefaultUsers();
@@ -354,18 +363,10 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
 
-        // Check if user is logged in
-        const currentUser = DB.getCurrentUser();
-        if (currentUser) {
-            initializeApp(currentUser);
-        } else {
-            showAuthScreen();
-        }
-
         // Auth form handlers
         setupAuthHandlers();
 
-        // Setup navigation
+        // Setup navigation and other features
         setTimeout(() => {
             try { setupNavigation(); } catch(e) { console.log('Nav error:', e); }
             try { setupDVDVideos(); } catch(e) { console.log('DVD error:', e); }
@@ -375,7 +376,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     } catch(error) {
         console.error('Error inicializando app:', error);
-        // Mostrar auth screen si hay error
         showAuthScreen();
     }
 });
