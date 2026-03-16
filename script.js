@@ -321,11 +321,10 @@ const DB = {
     }
 };
 
-// Detectar si estamos en producción (Render)
-const isProduction = typeof window !== 'undefined' && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1';
-
 // Initialize app
 document.addEventListener('DOMContentLoaded', () => {
+    // Detectar si estamos en producción (Render)
+    const isProduction = window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1';
     console.log('🌐 Modo:', isProduction ? 'Producción (API)' : 'Desarrollo (localStorage)');
 
     // Initialize default users and bots
