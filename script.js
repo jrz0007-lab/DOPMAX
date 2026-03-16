@@ -748,18 +748,73 @@ function performUserSearch() {
     const searchInput = document.getElementById('user-search-input');
     const searchResults = document.getElementById('search-results');
     const currentUser = DB.getCurrentUser();
-    
+
     if (!searchInput || !searchResults || !currentUser) return;
-    
+
     const query = searchInput.value.trim();
     if (query.length < 2) {
         searchResults.innerHTML = '<div class="no-search-results">Escribe al menos 2 caracteres</div>';
         searchResults.classList.remove('hidden');
         return;
     }
-    
-    const users = DB.searchUsers(query, currentUser.id);
-    
+
+    // Intentar buscar en la API primero (producción)
+    if (typeof API !== 'undefined' && isProduction) {
+        API.searchUsers(query, currentUser.username)
+            .then(result => {
+                if (result.success && result.usuarios && result.usuarios.length > 0) {
+                    displaySearchResults(result.usuarios, searchResults, currentUser);
+                } else {
+                    // Fallback a localStorage
+                    const users = DB.searchUsers(query, currentUser.id);
+                    displaySearchResultsLocal(users, searchResults, currentUser);
+                }
+            })
+            .catch(err => {
+                console.error('Error buscando usuarios:', err);
+                const users = DB.searchUsers(query, currentUser.id);
+                displaySearchResultsLocal(users, searchResults, currentUser);
+            });
+    } else {
+        // Búsqueda local (desarrollo)
+        const users = DB.searchUsers(query, currentUser.id);
+        displaySearchResultsLocal(users, searchResults, currentUser);
+    }
+}
+
+function displaySearchResults(users, searchResults, currentUser) {
+    if (users.length === 0) {
+        searchResults.innerHTML = '<div class="no-search-results">No se encontraron usuarios</div>';
+    } else {
+        searchResults.innerHTML = '';
+        users.forEach(user => {
+            const userEl = document.createElement('div');
+            userEl.className = 'search-result-item';
+            userEl.innerHTML = `
+                <div class="search-result-avatar">${user.avatar || '👤'}</div>
+                <div class="search-result-info">
+                    <div class="search-result-name">${user.nombreusuario || user.username}</div>
+                    <div class="search-result-username">@${user.nombreusuario || user.username}</div>
+                </div>
+                <button class="search-result-action" data-user="${encodeURIComponent(user.nombreusuario || user.username)}" data-avatar="${user.avatar || '👤'}">Chatear</button>
+            `;
+            searchResults.appendChild(userEl);
+        });
+
+        searchResults.querySelectorAll('.search-result-action').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const username = btn.getAttribute('data-user');
+                const avatar = btn.getAttribute('data-avatar');
+                startChatWithUser(decodeURIComponent(username), avatar);
+            });
+        });
+    }
+
+    searchResults.classList.remove('hidden');
+}
+
+function displaySearchResultsLocal(users, searchResults, currentUser) {
     if (users.length === 0) {
         searchResults.innerHTML = '<div class="no-search-results">No se encontraron usuarios</div>';
     } else {
@@ -777,59 +832,101 @@ function performUserSearch() {
             `;
             searchResults.appendChild(userEl);
         });
-        
+
         searchResults.querySelectorAll('.search-result-action').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 e.stopPropagation();
                 const userId = btn.getAttribute('data-user-id');
                 const username = btn.getAttribute('data-username');
                 const avatar = btn.getAttribute('data-avatar');
-                startChatWithUser(userId, username, avatar);
+                startChatWithUserLocal(userId, username, avatar);
             });
         });
     }
-    
+
     searchResults.classList.remove('hidden');
 }
 
-function startChatWithUser(userId, username, avatar) {
+function startChatWithUser(username, avatar) {
     const currentUser = DB.getCurrentUser();
     if (!currentUser) return;
-    
+
+    // Crear o obtener chat con usuario real
+    if (typeof API !== 'undefined' && isProduction) {
+        // Primero crear el chat en la BD
+        API.createChat(currentUser.username, username)
+            .then(result => {
+                if (result.success || result.chatId) {
+                    // Chat creado/obtenido, ahora abrirlo
+                    openChatWithUser(username, avatar);
+                } else {
+                    console.error('Error creando chat:', result.error);
+                    // Fallback local
+                    startChatWithUserLocal(null, username, avatar);
+                }
+            })
+            .catch(err => {
+                console.error('Error en API:', err);
+                startChatWithUserLocal(null, username, avatar);
+            });
+    } else {
+        // Local
+        startChatWithUserLocal(null, username, avatar);
+    }
+}
+
+function startChatWithUserLocal(userId, username, avatar) {
+    const currentUser = DB.getCurrentUser();
+    if (!currentUser) return;
+
     // Verificar si ya existe el chat
     let userChats = DB.getUserChats(currentUser.id);
-    let existingChat = userChats.find(c => c.userId === userId);
-    
+    let existingChat = userChats.find(c => c.username === username);
+
     if (!existingChat) {
         // Crear nuevo chat
         const now = new Date();
         const time = now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
-        
+
         existingChat = {
-            userId: userId,
+            userId: userId || username,
             username: username,
             avatar: avatar,
             lastMessage: '',
             time: time
         };
-        
+
         DB.saveUserChat(currentUser.id, existingChat);
     }
-    
+
     // Ocultar resultados de búsqueda
     const searchResults = document.getElementById('search-results');
     const searchInput = document.getElementById('user-search-input');
     if (searchResults) searchResults.classList.add('hidden');
     if (searchInput) searchInput.value = '';
-    
+
     // Recargar lista de chats
     loadUserChats();
-    
+
     // Abrir el chat
-    const chatEl = document.querySelector(`.chat-item[data-chat="${userId}"][data-user-chat="true"]`);
+    const chatEl = document.querySelector(`.chat-item[data-chat="${userId || username}"][data-user-chat="true"]`);
     if (chatEl) {
         openUserChat(chatEl);
+    } else {
+        // Abrir directamente
+        openChatWithUser(username, avatar);
     }
+}
+
+function openChatWithUser(username, avatar) {
+    // Configurar overlay del chat
+    document.getElementById('chat-overlay-avatar').textContent = avatar || '👤';
+    document.getElementById('chat-overlay-name').textContent = '@' + username;
+    document.getElementById('chat-overlay').classList.remove('hidden');
+    document.getElementById('chat-overlay').classList.add('active');
+
+    // Cargar mensajes
+    loadUserChatMessages(username);
 }
 
 function openUserChat(chatItem) {
@@ -849,11 +946,36 @@ function openUserChat(chatItem) {
 function loadUserChatMessages(userId) {
     const currentUser = DB.getCurrentUser();
     if (!currentUser) return;
-    
+
+    // Intentar cargar desde API en producción
+    if (typeof API !== 'undefined' && isProduction) {
+        // Primero obtener el chat ID
+        API.createChat(currentUser.username, userId)
+            .then(result => {
+                if (result.chatId) {
+                    loadChatMessagesFromAPI(result.chatId);
+                } else {
+                    // Fallback local
+                    loadUserChatMessagesLocal(userId);
+                }
+            })
+            .catch(err => {
+                console.error('Error cargando chat:', err);
+                loadUserChatMessagesLocal(userId);
+            });
+    } else {
+        loadUserChatMessagesLocal(userId);
+    }
+}
+
+function loadUserChatMessagesLocal(userId) {
+    const currentUser = DB.getCurrentUser();
+    if (!currentUser) return;
+
     const messages = DB.getMessagesForChat(userId, null, true, currentUser.id);
     const container = document.getElementById('chat-overlay-messages');
     container.innerHTML = '';
-    
+
     if (messages.length === 0) {
         container.innerHTML = '<div class="no-chats-message">Escribe el primer mensaje</div>';
     } else {
@@ -861,7 +983,7 @@ function loadUserChatMessages(userId) {
             const msgEl = document.createElement('div');
             msgEl.className = 'chat-message' + (msg.sent ? ' sent' : '');
             msgEl.innerHTML = `
-                <div class="chat-message-avatar">${msg.sent ? '🐱' : '👤'}</div>
+                <div class="chat-message-avatar">${msg.sent ? (currentUser.avatar || '🐱') : '👤'}</div>
                 <div class="chat-message-content">
                     <div class="chat-message-text">${msg.text}</div>
                     <div class="chat-message-time">${msg.time}</div>
@@ -870,76 +992,144 @@ function loadUserChatMessages(userId) {
             container.appendChild(msgEl);
         });
     }
-    
+
     container.scrollTop = container.scrollHeight;
 }
-
 function sendChatMessage() {
     const input = document.getElementById('chat-input');
     const text = input.value.trim();
     if (!text) return;
-    
+
     const currentUser = DB.getCurrentUser();
     if (!currentUser) return;
-    
+
     const chatOverlay = document.getElementById('chat-overlay');
     const chatName = chatOverlay.querySelector('#chat-overlay-name').textContent.replace('@', '');
-    
-    // Verificar si es un chat de usuario
-    const isUserChat = chatOverlay.querySelector('.chat-item[data-user-chat="true"]') !== null || 
-                       document.querySelector(`.chat-item .chat-name:contains("@${chatName}")`) !== null;
-    
-    // Obtener userId del chat actual
-    let chatId = null;
+
+    // Intentar enviar por API en producción
+    if (typeof API !== 'undefined' && isProduction) {
+        // Buscar o crear el chat
+        API.createChat(currentUser.username, chatName)
+            .then(result => {
+                if (result.success || result.chatId) {
+                    const chatId = result.chatId;
+                    
+                    // Enviar mensaje por API
+                    API.sendMessage(chatId, currentUser.username, text)
+                        .then(msgResult => {
+                            if (msgResult.success) {
+                                input.value = '';
+                                loadChatMessagesFromAPI(chatId);
+                            }
+                        })
+                        .catch(err => console.error('Error enviando mensaje:', err));
+                    
+                    // Actualizar localmente
+                    updateLocalChat(chatName, text, currentUser);
+                }
+            })
+            .catch(err => {
+                console.error('Error creando chat:', err);
+                // Fallback local
+                sendChatMessageLocal(text, currentUser, chatName);
+            });
+    } else {
+        // Local
+        sendChatMessageLocal(text, currentUser, chatName);
+    }
+}
+
+function sendChatMessageLocal(text, currentUser, chatName) {
     const userChats = DB.getUserChats(currentUser.id);
     const userChat = userChats.find(c => c.username === chatName);
-    
+
     if (userChat) {
-        // Es un chat con usuario real
-        chatId = userChat.userId;
-        
+        const chatId = userChat.userId;
         const now = new Date();
         const time = now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
-        
+
         const message = {
             text: text,
             sent: true,
             time: time
         };
-        
+
         DB.saveMessage(chatId, null, message, true, currentUser.id);
-        
-        // Actualizar último mensaje
+
         userChat.lastMessage = text;
         userChat.time = time;
         DB.saveUserChat(currentUser.id, userChat);
-        
+
         loadUserChatMessages(chatId);
         loadUserChats();
     } else {
-        // Chat predeterminado (no usuario real)
+        // Chat predeterminado
         const roomName = currentUser.room;
         const defaultChats = DB.getChatsForRoom(roomName);
         const defaultChat = defaultChats.find(c => c.name === chatName);
-        
+
         if (defaultChat) {
-            chatId = defaultChat.id;
-            
+            const chatId = defaultChat.id;
             const now = new Date();
             const time = now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
-            
+
             const message = {
                 text: text,
                 sent: true,
                 time: time
             };
-            
+
             DB.saveMessage(chatId, roomName, message);
             loadChatMessages(chatId, roomName);
         }
     }
+
+    const input = document.getElementById('chat-input');
+    if (input) input.value = '';
+}
+
+function updateLocalChat(chatName, text, currentUser) {
+    const userChats = DB.getUserChats(currentUser.id);
+    let userChat = userChats.find(c => c.username === chatName);
     
-    input.value = '';
+    if (userChat) {
+        userChat.lastMessage = text;
+        userChat.time = new Date().getHours().toString().padStart(2, '0') + ':' + new Date().getMinutes().toString().padStart(2, '0');
+        DB.saveUserChat(currentUser.id, userChat);
+        loadUserChats();
+    }
+}
+
+function loadChatMessagesFromAPI(chatId) {
+    if (typeof API === 'undefined') return;
+    
+    API.getChatMessages(chatId)
+        .then(result => {
+            if (result.success && result.mensajes) {
+                const container = document.getElementById('chat-overlay-messages');
+                if (!container) return;
+                
+                container.innerHTML = '';
+                const currentUser = DB.getCurrentUser();
+                
+                result.mensajes.forEach(msg => {
+                    const msgEl = document.createElement('div');
+                    const isSent = msg.remitente === currentUser?.username;
+                    msgEl.className = 'chat-message' + (isSent ? ' sent' : '');
+                    msgEl.innerHTML = `
+                        <div class="chat-message-avatar">${isSent ? (currentUser?.avatar || '🐱') : '👤'}</div>
+                        <div class="chat-message-content">
+                            <div class="chat-message-text">${msg.contenido}</div>
+                            <div class="chat-message-time">${formatTimestamp(msg.created_at)}</div>
+                        </div>
+                    `;
+                    container.appendChild(msgEl);
+                });
+                
+                container.scrollTop = container.scrollHeight;
+            }
+        })
+        .catch(err => console.error('Error cargando mensajes:', err));
 }
 
 // DVD Videos
