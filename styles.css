@@ -1965,3 +1965,168 @@ button, .tab, .dvd-video, .chat-item, .notification-item, .settings-item, .creat
 .pou-image.level-6 {
     filter: drop-shadow(0 4px 30px rgba(0, 255, 0, 1)) hue-rotate(120deg) saturate(3);
 }
+
+/* ============================================
+   MODALES DE AJUSTES
+   ============================================ */
+.settings-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.7);
+    z-index: 2000;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.settings-modal.hidden {
+    display: none;
+}
+
+.modal-content {
+    background: #fff;
+    border-radius: 20px;
+    width: 90%;
+    max-width: 400px;
+    max-height: 80vh;
+    overflow-y: auto;
+    color: #000;
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.modal-header h3 {
+    font-size: 18px;
+    font-weight: 700;
+    margin: 0;
+}
+
+.modal-close {
+    background: none;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+    color: #666;
+    padding: 5px;
+}
+
+.modal-body {
+    padding: 20px;
+}
+
+.modal-body p {
+    margin-bottom: 15px;
+    color: #666;
+}
+
+.modal-body input[type="text"] {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #e0e0e0;
+    border-radius: 10px;
+    font-size: 14px;
+    margin-bottom: 15px;
+}
+
+.modal-btn {
+    width: 100%;
+    padding: 14px;
+    background: linear-gradient(135deg, #f7b916 0%, #f5a623 100%);
+    border: none;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 700;
+    color: #000;
+    cursor: pointer;
+}
+
+.opcion-privacidad {
+    margin-bottom: 20px;
+}
+
+.opcion-privacidad label {
+    display: flex;
+    align-items: center;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.opcion-privacidad input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+    margin-right: 10px;
+    accent-color: #f7b916;
+}
+
+.opcion-desc {
+    font-size: 13px;
+    color: #999;
+    margin-top: 5px;
+    margin-left: 30px;
+}
+
+.tiempo-stats {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.tiempo-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 15px;
+    background: #f5f5f5;
+    border-radius: 10px;
+}
+
+.tiempo-label {
+    font-weight: 600;
+    color: #666;
+}
+
+.tiempo-value {
+    font-weight: 700;
+    color: #f7b916;
+}
+
+.lista-items {
+    min-height: 100px;
+}
+
+.no-items {
+    text-align: center;
+    color: #999;
+    padding: 20px;
+}
+
+.bloqueado-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.bloqueado-item .username {
+    font-weight: 600;
+}
+
+.bloqueado-item .desbloquear-btn {
+    background: #f7b916;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+}

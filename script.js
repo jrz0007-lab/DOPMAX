@@ -402,6 +402,265 @@ function setupAuthHandlers() {
     }
 }
 
+// Setup Profile Settings
+function setupProfileSettings() {
+    try {
+        const currentUser = DB.getCurrentUser();
+        if (!currentUser) return;
+
+        // Botones de modales
+        const btnPrivacidad = document.getElementById('btn-privacidad');
+        const btnFotoPerfil = document.getElementById('btn-foto-perfil');
+        const btnBloqueadas = document.getElementById('btn-bloqueadas');
+        const btnTiempo = document.getElementById('btn-tiempo');
+        const btnPreferencias = document.getElementById('btn-preferencias');
+        const btnEmpresa = document.getElementById('btn-empresa');
+
+        // Modales
+        const modalFotoPerfil = document.getElementById('modal-foto-perfil');
+        const modalTiempo = document.getElementById('modal-tiempo');
+        const modalBloqueadas = document.getElementById('modal-bloqueadas');
+        const modalPrivacidad = document.getElementById('modal-privacidad');
+        const modalPreferencias = document.getElementById('modal-preferencias');
+        const modalEmpresa = document.getElementById('modal-empresa');
+
+        // Abrir modal Foto de Perfil
+        if (btnFotoPerfil && modalFotoPerfil) {
+            btnFotoPerfil.addEventListener('click', () => {
+                modalFotoPerfil.classList.remove('hidden');
+            });
+            document.getElementById('close-foto-perfil')?.addEventListener('click', () => {
+                modalFotoPerfil.classList.add('hidden');
+            });
+            document.getElementById('guardar-foto')?.addEventListener('click', () => {
+                const url = document.getElementById('foto-url-input').value.trim();
+                if (url && isValidImageUrl(url)) {
+                    localStorage.setItem('dopmax_foto_perfil_' + currentUser.username, url);
+                    actualizarFotoPerfil(currentUser.username, url);
+                    modalFotoPerfil.classList.add('hidden');
+                    alert('Foto de perfil actualizada');
+                } else {
+                    alert('Introduce una URL de imagen válida (ej: https://i.imgur.com/imagen.png)');
+                }
+            });
+        }
+
+        // Abrir modal Tiempo en Pantalla
+        if (btnTiempo && modalTiempo) {
+            btnTiempo.addEventListener('click', () => {
+                actualizarTiempoPantalla();
+                modalTiempo.classList.remove('hidden');
+            });
+            document.getElementById('close-tiempo')?.addEventListener('click', () => {
+                modalTiempo.classList.add('hidden');
+            });
+        }
+
+        // Abrir modal Cuentas Bloqueadas
+        if (btnBloqueadas && modalBloqueadas) {
+            btnBloqueadas.addEventListener('click', () => {
+                cargarCuentasBloqueadas();
+                modalBloqueadas.classList.remove('hidden');
+            });
+            document.getElementById('close-bloqueadas')?.addEventListener('click', () => {
+                modalBloqueadas.classList.add('hidden');
+            });
+        }
+
+        // Abrir modal Privacidad
+        if (btnPrivacidad && modalPrivacidad) {
+            btnPrivacidad.addEventListener('click', () => {
+                cargarPrivacidad();
+                modalPrivacidad.classList.remove('hidden');
+            });
+            document.getElementById('close-privacidad')?.addEventListener('click', () => {
+                modalPrivacidad.classList.add('hidden');
+            });
+            document.getElementById('guardar-privacidad')?.addEventListener('click', () => {
+                guardarPrivacidad(currentUser.username);
+                modalPrivacidad.classList.add('hidden');
+                alert('Configuración de privacidad guardada');
+            });
+        }
+
+        // Abrir modal Preferencias
+        if (btnPreferencias && modalPreferencias) {
+            btnPreferencias.addEventListener('click', () => {
+                cargarPreferencias();
+                modalPreferencias.classList.remove('hidden');
+            });
+            document.getElementById('close-preferencias')?.addEventListener('click', () => {
+                modalPreferencias.classList.add('hidden');
+            });
+            document.getElementById('guardar-preferencias')?.addEventListener('click', () => {
+                guardarPreferencias(currentUser.username);
+                modalPreferencias.classList.add('hidden');
+                alert('Preferencias guardadas');
+            });
+        }
+
+        // Abrir modal Empresa (solo para _admin)
+        if (btnEmpresa && modalEmpresa) {
+            btnEmpresa.addEventListener('click', () => {
+                if (currentUser.username.endsWith('_admin')) {
+                    modalEmpresa.classList.remove('hidden');
+                } else {
+                    alert('Esta función solo está disponible para cuentas de empresa (_admin)');
+                }
+            });
+            document.getElementById('close-empresa')?.addEventListener('click', () => {
+                modalEmpresa.classList.add('hidden');
+            });
+            document.getElementById('activar-empresa')?.addEventListener('click', () => {
+                alert('Cuenta de empresa activada. Ahora tienes acceso a estadísticas avanzadas.');
+                modalEmpresa.classList.add('hidden');
+            });
+        }
+
+        // Cerrar modales al hacer click fuera
+        [modalFotoPerfil, modalTiempo, modalBloqueadas, modalPrivacidad, modalPreferencias, modalEmpresa].forEach(modal => {
+            if (modal) {
+                modal.addEventListener('click', (e) => {
+                    if (e.target === modal) {
+                        modal.classList.add('hidden');
+                    }
+                });
+            }
+        });
+
+    } catch(e) {
+        console.log('Profile settings error:', e);
+    }
+}
+
+function isValidImageUrl(url) {
+    return url.startsWith('http://') || url.startsWith('https://');
+}
+
+function actualizarFotoPerfil(username, url) {
+    const profilePicLarge = document.getElementById('profile-pic-large');
+    if (profilePicLarge) {
+        profilePicLarge.style.backgroundImage = `url(${url})`;
+        profilePicLarge.style.backgroundSize = 'cover';
+        profilePicLarge.style.backgroundPosition = 'center';
+        profilePicLarge.textContent = '';
+    }
+}
+
+function actualizarTiempoPantalla() {
+    const now = Date.now();
+    const sessionStart = parseInt(localStorage.getItem('dopmax_session_start') || now.toString());
+    const tiempoHoy = Math.floor((now - sessionStart) / 60000); // minutos
+    
+    // Simular datos semanales y mensuales
+    const tiempoSemana = tiempoHoy + Math.floor(Math.random() * 120);
+    const tiempoMes = tiempoSemana * 4 + Math.floor(Math.random() * 500);
+    
+    const hoyH = Math.floor(tiempoHoy / 60);
+    const hoyM = tiempoHoy % 60;
+    const semanaH = Math.floor(tiempoSemana / 60);
+    const semanaM = tiempoSemana % 60;
+    const mesH = Math.floor(tiempoMes / 60);
+    const mesM = tiempoMes % 60;
+    
+    const tiempoHoyEl = document.getElementById('tiempo-hoy');
+    const tiempoSemanaEl = document.getElementById('tiempo-semana');
+    const tiempoMesEl = document.getElementById('tiempo-mes');
+    
+    if (tiempoHoyEl) tiempoHoyEl.textContent = `${hoyH}h ${hoyM}m`;
+    if (tiempoSemanaEl) tiempoSemanaEl.textContent = `${semanaH}h ${semanaM}m`;
+    if (tiempoMesEl) tiempoMesEl.textContent = `${mesH}h ${mesM}m`;
+}
+
+function cargarCuentasBloqueadas() {
+    const lista = document.getElementById('lista-bloqueadas');
+    if (!lista) return;
+    
+    const bloqueadas = JSON.parse(localStorage.getItem('dopmax_bloqueadas') || '[]');
+    
+    if (bloqueadas.length === 0) {
+        lista.innerHTML = '<p class="no-items">No tienes cuentas bloqueadas</p>';
+    } else {
+        lista.innerHTML = '';
+        bloqueadas.forEach(username => {
+            const item = document.createElement('div');
+            item.className = 'bloqueado-item';
+            item.innerHTML = `
+                <span class="username">@${username}</span>
+                <button class="desbloquear-btn" data-username="${username}">Desbloquear</button>
+            `;
+            lista.appendChild(item);
+        });
+        
+        lista.querySelectorAll('.desbloquear-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const username = btn.getAttribute('data-username');
+                desbloquearUsuario(username);
+            });
+        });
+    }
+}
+
+function desbloquearUsuario(username) {
+    let bloqueadas = JSON.parse(localStorage.getItem('dopmax_bloqueadas') || '[]');
+    bloqueadas = bloqueadas.filter(u => u !== username);
+    localStorage.setItem('dopmax_bloqueadas', JSON.stringify(bloqueadas));
+    cargarCuentasBloqueadas();
+}
+
+function cargarPrivacidad() {
+    const currentUser = DB.getCurrentUser();
+    if (!currentUser) return;
+    
+    const privacidad = JSON.parse(localStorage.getItem('dopmax_privacidad_' + currentUser.username) || '{}');
+    
+    const cuentaPrivada = document.getElementById('opcion-cuenta-privada');
+    const mensajes = document.getElementById('opcion-mensajes');
+    const comentarios = document.getElementById('opcion-comentarios');
+    
+    if (cuentaPrivada) cuentaPrivada.checked = privacidad.cuentaPrivada || false;
+    if (mensajes) mensajes.checked = privacidad.mensajes !== false;
+    if (comentarios) comentarios.checked = privacidad.comentarios !== false;
+}
+
+function guardarPrivacidad(username) {
+    const privacidad = {
+        cuentaPrivada: document.getElementById('opcion-cuenta-privada')?.checked || false,
+        mensajes: document.getElementById('opcion-mensajes')?.checked !== false,
+        comentarios: document.getElementById('opcion-comentarios')?.checked !== false
+    };
+    
+    localStorage.setItem('dopmax_privacidad_' + username, JSON.stringify(privacidad));
+}
+
+function cargarPreferencias() {
+    const currentUser = DB.getCurrentUser();
+    if (!currentUser) return;
+    
+    const prefs = JSON.parse(localStorage.getItem('dopmax_preferencias_' + currentUser.username) || '{}');
+    
+    const musica = document.getElementById('opcion-musica');
+    const gaming = document.getElementById('opcion-gaming');
+    const deportes = document.getElementById('opcion-deportes');
+    const comedia = document.getElementById('opcion-comedia');
+    
+    if (musica) musica.checked = prefs.musica !== false;
+    if (gaming) gaming.checked = prefs.gaming !== false;
+    if (deportes) deportes.checked = prefs.deportes !== false;
+    if (comedia) comedia.checked = prefs.comedia !== false;
+}
+
+function guardarPreferencias(username) {
+    const prefs = {
+        musica: document.getElementById('opcion-musica')?.checked !== false,
+        gaming: document.getElementById('opcion-gaming')?.checked !== false,
+        deportes: document.getElementById('opcion-deportes')?.checked !== false,
+        comedia: document.getElementById('opcion-comedia')?.checked !== false
+    };
+    
+    localStorage.setItem('dopmax_preferencias_' + username, JSON.stringify(prefs));
+}
+
 // Setup DVD videos
 function setupDVDVideos() {
     try {
@@ -610,6 +869,9 @@ function handleLogin() {
 
     DB.setCurrentUser(user);
     
+    // Guardar inicio de sesión para tiempo en pantalla
+    localStorage.setItem('dopmax_session_start', Date.now().toString());
+    
     // Inicializar app directamente sin recargar
     setTimeout(() => {
         initializeApp(user);
@@ -775,6 +1037,11 @@ function initializeApp(user) {
         setTimeout(() => {
             try { setupCatClicker(); } catch(e) { console.log('Cat init error:', e); }
         }, 500);
+        
+        // Inicializar ajustes de perfil
+        setTimeout(() => {
+            try { setupProfileSettings(); } catch(e) { console.log('Profile settings error:', e); }
+        }, 600);
         
         console.log('✅ Usuario inicializado correctamente');
     } catch(error) {
