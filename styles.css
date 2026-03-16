@@ -676,8 +676,8 @@ button, .tab, .dvd-video, .chat-item, .notification-item, .settings-item, .creat
 .nav-btn.create-btn {
     background: none;
     border-radius: 50%;
-    width: 35px;
-    height: 35px;
+    width: 45px;
+    height: 45px;
     justify-content: center;
     align-items: center;
     margin-top: -20px;
@@ -685,8 +685,8 @@ button, .tab, .dvd-video, .chat-item, .notification-item, .settings-item, .creat
 }
 
 .nav-btn.create-btn svg {
-    width: 28px;
-    height: 28px;
+    width: 35px;
+    height: 35px;
     color: rgba(0, 0, 0, 0.6);
     fill: currentColor;
 }
