@@ -1868,8 +1868,8 @@ button, .tab, .dvd-video, .chat-item, .notification-item, .settings-item, .creat
 }
 
 .cat-clicker-btn {
-    width: 80px;
-    height: 80px;
+    width: 100px;
+    height: 100px;
     cursor: pointer;
     pointer-events: auto;
     transition: transform 0.1s;
