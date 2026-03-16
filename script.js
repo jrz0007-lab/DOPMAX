@@ -317,17 +317,31 @@ document.addEventListener('DOMContentLoaded', () => {
         const isProduction = window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1';
         console.log('🌐 Modo:', isProduction ? 'Producción (API)' : 'Desarrollo (localStorage)');
 
-        // Mostrar auth screen directamente
-        showAuthScreen();
-
         // Initialize default users and bots
         DB.initDefaultUsers();
         DB.initBots();
 
-        // Initialize comment events
-        setTimeout(() => {
-            try { initCommentEvents(); } catch(e) { console.log('Comment events error:', e); }
-        }, 100);
+        // Check if user is logged in
+        const currentUser = DB.getCurrentUser();
+        if (currentUser) {
+            // Usuario ya logueado, inicializar app
+            setTimeout(() => {
+                try {
+                    initializeApp(currentUser);
+                } catch(e) {
+                    console.error('Error al inicializar usuario:', e);
+                    showAuthScreen();
+                }
+            }, 100);
+        } else {
+            // No hay usuario logueado, mostrar auth
+            showAuthScreen();
+            
+            // Initialize comment events
+            setTimeout(() => {
+                try { initCommentEvents(); } catch(e) { console.log('Comment events error:', e); }
+            }, 100);
+        }
 
         // Disable context menu and copy/paste
         document.addEventListener('contextmenu', (e) => { e.preventDefault(); return false; });
@@ -348,15 +362,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Auth form handlers
         setupAuthHandlers();
-
-        // Setup navigation and other features (SOLO para usuarios no logueados)
-        setTimeout(() => {
-            try { setupNavigation(); } catch(e) { console.log('Nav error:', e); }
-            try { setupDVDVideos(); } catch(e) { console.log('DVD error:', e); }
-            try { setupCreator(); } catch(e) { console.log('Creator error:', e); }
-            try { setupRoulette(); } catch(e) { console.log('Roulette error:', e); }
-            // NO inicializar gato aquí, solo después del login
-        }, 200);
 
     } catch(error) {
         console.error('Error inicializando app:', error);
@@ -574,9 +579,11 @@ function handleLogin() {
     // Assign new room on login
     const newRoom = DB.assignRoom(username);
     user.room = newRoom;
-    
+
     DB.setCurrentUser(user);
-    initializeApp(user);
+    
+    // Forzar recarga para inicializar correctamente
+    window.location.reload();
 }
 
 function handleRegister() {
@@ -629,7 +636,9 @@ function handleRegister() {
 
     DB.saveUser(newUser);
     DB.setCurrentUser(newUser);
-    initializeApp(newUser);
+    
+    // Forzar recarga para inicializar correctamente
+    window.location.reload();
 }
 
 function handleLogout() {
