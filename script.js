@@ -483,18 +483,46 @@ function setupCatClicker() {
         // Mostrar el gato solo si está logueado
         catContainer.classList.remove('hidden');
         
-        // Cargar clicks guardados
-        const savedClicks = localStorage.getItem('cat_clicks');
-        if (savedClicks) {
-            catClicks = parseInt(savedClicks);
-            updateCatLevel();
+        // Cargar clicks guardados (de la BD en producción, localStorage en desarrollo)
+        if (typeof API !== 'undefined' && isProduction) {
+            API.getGatoClicks(currentUser.username)
+                .then(result => {
+                    if (result.success) {
+                        catClicks = result.clicks;
+                        updateCatLevel();
+                    } else {
+                        // Fallback a localStorage
+                        loadLocalClicks();
+                    }
+                })
+                .catch(err => {
+                    console.log('Error cargando clicks de BD:', err);
+                    loadLocalClicks();
+                });
+        } else {
+            loadLocalClicks();
+        }
+        
+        function loadLocalClicks() {
+            const savedClicks = localStorage.getItem('cat_clicks');
+            if (savedClicks) {
+                catClicks = parseInt(savedClicks);
+                updateCatLevel();
+            }
         }
         
         // Click en el gato
         catBtn.addEventListener('click', (e) => {
             e.stopPropagation();
             catClicks++;
-            localStorage.setItem('cat_clicks', catClicks.toString());
+            
+            // Guardar en BD (producción) o localStorage (desarrollo)
+            if (typeof API !== 'undefined' && isProduction) {
+                API.saveGatoClicks(currentUser.username, catClicks)
+                    .catch(err => console.log('Error guardando clicks:', err));
+            } else {
+                localStorage.setItem('cat_clicks', catClicks.toString());
+            }
             
             // Crear número flotante (estilo Startrak/Bongo Cat)
             createFloatingNumber(e.clientX, e.clientY);

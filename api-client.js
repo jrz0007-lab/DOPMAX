@@ -382,6 +382,47 @@ const API = {
             console.error('Error dejando de seguir:', error);
             return { success: false, error: error.message };
         }
+    },
+
+    // ============================================
+    // GATO CLICKER
+    // ============================================
+
+    getGatoClicks: async (usuario) => {
+        try {
+            const response = await fetch(`${API_CONFIG.baseURL}/gato/${encodeURIComponent(usuario)}/clicks`);
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.error || 'Error obteniendo clicks');
+            }
+
+            return { success: true, clicks: data.clicks };
+        } catch (error) {
+            console.error('Error obteniendo clicks:', error);
+            return { success: false, error: error.message };
+        }
+    },
+
+    saveGatoClicks: async (usuario, clicks) => {
+        try {
+            const response = await fetch(`${API_CONFIG.baseURL}/gato/${encodeURIComponent(usuario)}/clicks`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ clicks })
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.error || 'Error guardando clicks');
+            }
+
+            return { success: true, clicks: data.clicks };
+        } catch (error) {
+            console.error('Error guardando clicks:', error);
+            return { success: false, error: error.message };
+        }
     }
 };
 

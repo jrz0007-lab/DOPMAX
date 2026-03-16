@@ -157,6 +157,16 @@ async function createTables() {
             )
         `);
 
+        // Tabla de gato clicker (clicks por usuario)
+        await pool.query(`
+            CREATE TABLE IF NOT EXISTS gato_clicks (
+                id SERIAL PRIMARY KEY,
+                usuario VARCHAR(50) UNIQUE NOT NULL REFERENCES usuarios(nombreusuario) ON DELETE CASCADE,
+                clicks INTEGER DEFAULT 0,
+                ultimo_click TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        `);
+
         // Tabla de ruleta (saldo de usuarios)
         await pool.query(`
             CREATE TABLE IF NOT EXISTS ruleta_saldo (
@@ -749,6 +759,57 @@ app.get('/api/users/search/:query', async (req, res) => {
         res.json({ usuarios: result.rows });
     } catch (error) {
         console.error('Error buscando usuarios:', error);
+        res.status(500).json({ error: 'Error en el servidor' });
+    }
+});
+
+// ============================================
+// ENDPOINTS DE GATO CLICKER
+// ============================================
+
+// Obtener clicks del gato
+app.get('/api/gato/:usuario/clicks', async (req, res) => {
+    try {
+        const { usuario } = req.params;
+
+        const result = await pool.query(
+            'SELECT clicks FROM gato_clicks WHERE usuario = $1',
+            [usuario]
+        );
+
+        if (result.rows.length === 0) {
+            // Crear registro si no existe
+            await pool.query(
+                'INSERT INTO gato_clicks (usuario, clicks) VALUES ($1, 0)',
+                [usuario]
+            );
+            res.json({ clicks: 0 });
+        } else {
+            res.json({ clicks: result.rows[0].clicks });
+        }
+    } catch (error) {
+        console.error('Error obteniendo clicks:', error);
+        res.status(500).json({ error: 'Error en el servidor' });
+    }
+});
+
+// Guardar clicks del gato
+app.post('/api/gato/:usuario/clicks', async (req, res) => {
+    try {
+        const { usuario } = req.params;
+        const { clicks } = req.body;
+
+        const result = await pool.query(
+            `INSERT INTO gato_clicks (usuario, clicks)
+             VALUES ($1, $2)
+             ON CONFLICT (usuario) DO UPDATE SET clicks = $2, ultimo_click = CURRENT_TIMESTAMP
+             RETURNING clicks`,
+            [usuario, clicks]
+        );
+
+        res.json({ success: true, clicks: result.rows[0].clicks });
+    } catch (error) {
+        console.error('Error guardando clicks:', error);
         res.status(500).json({ error: 'Error en el servidor' });
     }
 });
