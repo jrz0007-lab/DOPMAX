@@ -323,74 +323,143 @@ const DB = {
 
 // Initialize app
 document.addEventListener('DOMContentLoaded', () => {
-    // Detectar si estamos en producción (Render)
-    const isProduction = window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1';
-    console.log('🌐 Modo:', isProduction ? 'Producción (API)' : 'Desarrollo (localStorage)');
+    try {
+        // Detectar si estamos en producción (Render)
+        const isProduction = window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1';
+        console.log('🌐 Modo:', isProduction ? 'Producción (API)' : 'Desarrollo (localStorage)');
 
-    // Initialize default users and bots
-    DB.initDefaultUsers();
-    DB.initBots();
+        // Initialize default users and bots
+        DB.initDefaultUsers();
+        DB.initBots();
 
-    // Initialize comment events
-    setTimeout(() => {
-        initCommentEvents();
-    }, 100);
+        // Initialize comment events
+        setTimeout(() => {
+            try { initCommentEvents(); } catch(e) { console.log('Comment events error:', e); }
+        }, 100);
 
-    // Disable context menu and copy/paste
-    document.addEventListener('contextmenu', (e) => { e.preventDefault(); return false; });
-    document.addEventListener('copy', (e) => { e.preventDefault(); return false; });
-    document.addEventListener('cut', (e) => { e.preventDefault(); return false; });
-    document.addEventListener('paste', (e) => {
-        const allowed = ['comment-input', 'chat-input', 'login-username', 'login-password', 'register-username', 'register-password', 'register-confirm'];
-        if (e.target.id && allowed.includes(e.target.id)) return;
-        e.preventDefault(); return false;
-    });
-    document.addEventListener('keydown', (e) => {
-        const allowed = ['comment-input', 'chat-input', 'login-username', 'login-password', 'register-username', 'register-password', 'register-confirm'];
-        if (e.target.id && allowed.includes(e.target.id)) return;
-        if ((e.ctrlKey || e.metaKey) && ['c','v','x','a'].includes(e.key.toLowerCase())) {
+        // Disable context menu and copy/paste
+        document.addEventListener('contextmenu', (e) => { e.preventDefault(); return false; });
+        document.addEventListener('copy', (e) => { e.preventDefault(); return false; });
+        document.addEventListener('cut', (e) => { e.preventDefault(); return false; });
+        document.addEventListener('paste', (e) => {
+            const allowed = ['comment-input', 'chat-input', 'login-username', 'login-password', 'register-username', 'register-password', 'register-confirm'];
+            if (e.target.id && allowed.includes(e.target.id)) return;
             e.preventDefault(); return false;
-        }
-    });
+        });
+        document.addEventListener('keydown', (e) => {
+            const allowed = ['comment-input', 'chat-input', 'login-username', 'login-password', 'register-username', 'register-password', 'register-confirm'];
+            if (e.target.id && allowed.includes(e.target.id)) return;
+            if ((e.ctrlKey || e.metaKey) && ['c','v','x','a'].includes(e.key.toLowerCase())) {
+                e.preventDefault(); return false;
+            }
+        });
 
-    // Check if user is logged in
-    const currentUser = DB.getCurrentUser();
-    if (currentUser) {
-        initializeApp(currentUser);
-    } else {
+        // Check if user is logged in
+        const currentUser = DB.getCurrentUser();
+        if (currentUser) {
+            initializeApp(currentUser);
+        } else {
+            showAuthScreen();
+        }
+
+        // Auth form handlers
+        setupAuthHandlers();
+
+        // Setup navigation
+        setTimeout(() => {
+            try { setupNavigation(); } catch(e) { console.log('Nav error:', e); }
+            try { setupDVDVideos(); } catch(e) { console.log('DVD error:', e); }
+            try { setupCreator(); } catch(e) { console.log('Creator error:', e); }
+            try { setupRoulette(); } catch(e) { console.log('Roulette error:', e); }
+        }, 200);
+
+    } catch(error) {
+        console.error('Error inicializando app:', error);
+        // Mostrar auth screen si hay error
         showAuthScreen();
     }
-
-    // Auth form handlers
-    document.getElementById('show-register').addEventListener('click', () => {
-        document.getElementById('login-form').classList.add('hidden');
-        document.getElementById('register-form').classList.remove('hidden');
-        document.getElementById('register-error').classList.add('hidden');
-    });
-
-    document.getElementById('show-login').addEventListener('click', () => {
-        document.getElementById('register-form').classList.add('hidden');
-        document.getElementById('login-form').classList.remove('hidden');
-        document.getElementById('login-error').classList.add('hidden');
-    });
-
-    document.getElementById('login-btn').addEventListener('click', handleLogin);
-    document.getElementById('register-btn').addEventListener('click', handleRegister);
-
-    // Enter key for login
-    document.getElementById('login-password').addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') handleLogin();
-    });
-
-    // Enter key for register
-    document.getElementById('register-confirm').addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') handleRegister();
-    });
-
-    // Logout handlers
-    document.getElementById('logout-btn').addEventListener('click', handleLogout);
-    document.getElementById('logout-settings').addEventListener('click', handleLogout);
 });
+
+// Setup auth handlers
+function setupAuthHandlers() {
+    try {
+        document.getElementById('show-register')?.addEventListener('click', () => {
+            document.getElementById('login-form')?.classList?.add('hidden');
+            document.getElementById('register-form')?.classList?.remove('hidden');
+            document.getElementById('register-error')?.classList?.add('hidden');
+        });
+
+        document.getElementById('show-login')?.addEventListener('click', () => {
+            document.getElementById('register-form')?.classList?.add('hidden');
+            document.getElementById('login-form')?.classList?.remove('hidden');
+            document.getElementById('login-error')?.classList?.add('hidden');
+        });
+
+        document.getElementById('login-btn')?.addEventListener('click', handleLogin);
+        document.getElementById('register-btn')?.addEventListener('click', handleRegister);
+
+        document.getElementById('login-password')?.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') handleLogin();
+        });
+
+        document.getElementById('register-confirm')?.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') handleRegister();
+        });
+
+        document.getElementById('logout-btn')?.addEventListener('click', handleLogout);
+        document.getElementById('logout-settings')?.addEventListener('click', handleLogout);
+    } catch(e) {
+        console.log('Auth setup error:', e);
+    }
+}
+
+// Setup DVD videos
+function setupDVDVideos() {
+    try {
+        initDVDVideos();
+    } catch(e) {
+        console.log('DVD setup error:', e);
+    }
+}
+
+// Setup creator
+function setupCreator() {
+    try {
+        document.getElementById('upload-btn')?.addEventListener('click', () => {
+            document.getElementById('video-upload')?.click();
+        });
+        document.getElementById('video-upload')?.addEventListener('change', (e) => {
+            if (e.target.files[0]) {
+                document.getElementById('upload-progress')?.classList?.remove('hidden');
+                setTimeout(() => {
+                    document.getElementById('upload-progress')?.classList?.add('hidden');
+                    document.getElementById('upload-success')?.classList?.remove('hidden');
+                }, 2000);
+            }
+        });
+    } catch(e) {
+        console.log('Creator setup error:', e);
+    }
+}
+
+// Setup roulette
+function setupRoulette() {
+    try {
+        // Roulette setup si existe
+        const rouletteBtn = document.getElementById('roulette-btn');
+        const rouletteOverlay = document.getElementById('roulette-overlay');
+        if (rouletteBtn && rouletteOverlay) {
+            rouletteBtn.addEventListener('click', () => {
+                rouletteOverlay.classList.remove('hidden');
+            });
+            document.getElementById('roulette-close')?.addEventListener('click', () => {
+                rouletteOverlay.classList.add('hidden');
+            });
+        }
+    } catch(e) {
+        console.log('Roulette setup error:', e);
+    }
+}
 
 function handleLogin() {
     const username = document.getElementById('login-username').value.trim();
