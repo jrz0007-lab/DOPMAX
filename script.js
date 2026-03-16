@@ -348,13 +348,13 @@ document.addEventListener('DOMContentLoaded', () => {
         // Auth form handlers
         setupAuthHandlers();
 
-        // Setup navigation and other features
+        // Setup navigation and other features (SOLO para usuarios no logueados)
         setTimeout(() => {
             try { setupNavigation(); } catch(e) { console.log('Nav error:', e); }
             try { setupDVDVideos(); } catch(e) { console.log('DVD error:', e); }
             try { setupCreator(); } catch(e) { console.log('Creator error:', e); }
             try { setupRoulette(); } catch(e) { console.log('Roulette error:', e); }
-            try { setupCatClicker(); } catch(e) { console.log('Cat clicker error:', e); }
+            // NO inicializar gato aquí, solo después del login
         }, 200);
 
     } catch(error) {
@@ -462,11 +462,10 @@ function setupCatClicker() {
     try {
         const catContainer = document.getElementById('cat-clicker');
         const catBtn = document.getElementById('cat-clicker-btn');
-        const counter = document.getElementById('cat-counter');
-        const counterText = document.getElementById('counter-text');
+        const clickCounter = document.getElementById('click-counter');
         const catSvg = document.getElementById('cat-svg');
         
-        if (!catContainer || !catBtn || !counter || !counterText) return;
+        if (!catContainer || !catBtn) return;
         
         // Verificar si el usuario está logueado
         const currentUser = DB.getCurrentUser();
@@ -491,18 +490,11 @@ function setupCatClicker() {
             catClicks++;
             localStorage.setItem('cat_clicks', catClicks.toString());
             
-            // Mostrar contador (negro con números blancos)
-            counterText.textContent = catClicks;
-            counter.classList.add('visible');
+            // Crear número flotante (estilo Startrak/Bongo Cat)
+            createFloatingNumber(e.clientX, e.clientY);
             
             // Actualizar nivel
             updateCatLevel();
-            
-            // Ocultar contador después de 5 segundos
-            if (counterTimeout) clearTimeout(counterTimeout);
-            counterTimeout = setTimeout(() => {
-                counter.classList.remove('visible');
-            }, 5000);
             
             // Efecto de animación
             catBtn.style.transform = 'scale(0.9) rotate(-5deg)';
@@ -514,6 +506,27 @@ function setupCatClicker() {
     } catch(e) {
         console.log('Cat clicker error:', e);
     }
+}
+
+function createFloatingNumber(x, y) {
+    const counter = document.getElementById('click-counter');
+    if (!counter) return;
+    
+    // Crear elemento de número flotante
+    const number = document.createElement('div');
+    number.className = 'click-number';
+    number.textContent = '+' + catClicks;
+    number.style.left = '50%';
+    number.style.top = '0px';
+    
+    counter.appendChild(number);
+    
+    // Eliminar después de la animación
+    setTimeout(() => {
+        if (number.parentNode) {
+            number.remove();
+        }
+    }, 800);
 }
 
 function updateCatLevel() {
@@ -640,35 +653,44 @@ function showAuthScreen() {
 }
 
 function initializeApp(user) {
-    // Hide loading and auth screens
-    document.getElementById('loading-screen').classList.remove('active');
-    document.getElementById('auth-screen').classList.remove('active');
+    try {
+        // Hide loading and auth screens
+        const loadingScreen = document.getElementById('loading-screen');
+        const authScreen = document.getElementById('auth-screen');
+        if (loadingScreen) loadingScreen.classList.remove('active');
+        if (authScreen) authScreen.classList.remove('active');
 
-    // Update UI with user info
-    document.getElementById('current-username').textContent = user.username;
-    document.getElementById('profile-username').textContent = '@' + user.username;
-    document.querySelector('.profile-pic-large').textContent = user.avatar;
-    document.querySelector('.profile-avatar').textContent = user.avatar;
+        // Update UI with user info
+        document.getElementById('current-username').textContent = user.username;
+        document.getElementById('profile-username').textContent = '@' + user.username;
+        document.querySelector('.profile-pic-large').textContent = user.avatar;
+        document.querySelector('.profile-avatar').textContent = user.avatar;
 
-    // Update room indicator
-    document.getElementById('room-indicator').textContent = 'Sala: ' + user.room;
+        // Update room indicator
+        document.getElementById('room-indicator').textContent = 'Sala: ' + user.room;
 
-    // Show home screen
-    document.getElementById('home-screen').classList.add('active');
+        // Show home screen
+        document.getElementById('home-screen').classList.add('active');
 
-    // Initialize DVD videos
-    setTimeout(initDVDVideos, 100);
+        // Initialize DVD videos
+        setTimeout(() => {
+            try { initDVDVideos(); } catch(e) { console.log('DVD init error:', e); }
+        }, 100);
 
-    // Setup navigation
-    setupNavigation();
+        // Setup navigation
+        setupNavigation();
 
-    // Load chats for current room
-    loadChatsForRoom(user.room);
-    
-    // Inicializar gato clicker SOLO cuando hay login
-    setTimeout(() => {
-        setupCatClicker();
-    }, 500);
+        // Load chats for current room
+        loadChatsForRoom(user.room);
+
+        // Inicializar gato clicker SOLO cuando hay login
+        setTimeout(() => {
+            try { setupCatClicker(); } catch(e) { console.log('Cat init error:', e); }
+        }, 500);
+    } catch(error) {
+        console.error('Error en initializeApp:', error);
+        showAuthScreen();
+    }
 }
 
 function setupNavigation() {
