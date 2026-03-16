@@ -1836,3 +1836,235 @@ button, .tab, .dvd-video, .chat-item, .notification-item, .settings-item, .creat
     cursor: not-allowed;
     transform: none;
 }
+
+/* ============================================
+   GATO CLICKER GAME
+   ============================================ */
+.cat-clicker-container {
+    position: fixed;
+    bottom: 80px;
+    left: 20px;
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    pointer-events: none;
+}
+
+.cat-clicker-counter {
+    position: absolute;
+    bottom: 140px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: linear-gradient(135deg, #f7b916 0%, #f5a623 100%);
+    padding: 8px 16px;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(247, 185, 22, 0.5);
+    opacity: 0;
+    transition: opacity 0.3s;
+    pointer-events: none;
+}
+
+.cat-clicker-counter.visible {
+    opacity: 1;
+    animation: counter-pop 0.3s ease-out;
+}
+
+@keyframes counter-pop {
+    0% { transform: translateX(-50%) scale(0.8); }
+    50% { transform: translateX(-50%) scale(1.1); }
+    100% { transform: translateX(-50%) scale(1); }
+}
+
+.counter-text {
+    font-size: 24px;
+    font-weight: 700;
+    color: #000;
+}
+
+.cat-clicker-btn {
+    width: 100px;
+    height: 90px;
+    cursor: pointer;
+    pointer-events: auto;
+    transition: transform 0.1s;
+    position: relative;
+}
+
+.cat-clicker-btn:active {
+    transform: scale(0.95);
+}
+
+.cat-clicker-btn:hover {
+    transform: scale(1.05);
+}
+
+.cat-body {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    background: linear-gradient(180deg, #ff9500 0%, #ff6b00 100%);
+    border-radius: 50% 50% 45% 45%;
+    box-shadow: 0 4px 15px rgba(255, 107, 0, 0.4);
+}
+
+.cat-ears {
+    position: absolute;
+    top: -10px;
+    left: 0;
+    right: 0;
+    display: flex;
+    justify-content: space-between;
+    padding: 0 15px;
+}
+
+.ear {
+    width: 0;
+    height: 0;
+    border-left: 12px solid transparent;
+    border-right: 12px solid transparent;
+    border-bottom: 25px solid #ff9500;
+}
+
+.ear.left { transform: rotate(-15deg); }
+.ear.right { transform: rotate(15deg); }
+
+.cat-face {
+    position: absolute;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 70px;
+    height: 50px;
+}
+
+.cat-eyes {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 8px;
+}
+
+.eye {
+    width: 18px;
+    height: 18px;
+    background: #fff;
+    border-radius: 50%;
+    position: relative;
+    overflow: hidden;
+}
+
+.pupil {
+    width: 8px;
+    height: 8px;
+    background: #000;
+    border-radius: 50%;
+    position: absolute;
+    top: 5px;
+    left: 5px;
+}
+
+.cat-clicker-btn:active .pupil {
+    top: 7px;
+    left: 7px;
+}
+
+.cat-nose {
+    width: 8px;
+    height: 6px;
+    background: #ff6b6b;
+    border-radius: 50%;
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    top: 28px;
+}
+
+.cat-mouth {
+    position: absolute;
+    top: 34px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 20px;
+    height: 10px;
+}
+
+.cat-mouth::before,
+.cat-mouth::after {
+    content: '';
+    position: absolute;
+    width: 10px;
+    height: 8px;
+    border-bottom: 2px solid #333;
+    border-radius: 50%;
+}
+
+.cat-mouth::before { left: 0; }
+.cat-mouth::after { right: 0; }
+
+.cat-whiskers {
+    position: absolute;
+    top: 32px;
+    width: 25px;
+}
+
+.cat-whiskers.left { left: -20px; }
+.cat-whiskers.right { right: -20px; }
+
+.whisker {
+    width: 20px;
+    height: 2px;
+    background: #fff;
+    margin: 4px 0;
+    border-radius: 2px;
+}
+
+.cat-paws {
+    position: absolute;
+    bottom: -5px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 30px;
+}
+
+.paw {
+    width: 20px;
+    height: 25px;
+    background: #fff;
+    border-radius: 50%;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+}
+
+.cat-level-display {
+    position: absolute;
+    top: -25px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 700;
+    color: #fff;
+    white-space: nowrap;
+    box-shadow: 0 2px 10px rgba(102, 126, 234, 0.5);
+}
+
+/* Niveles del gato */
+.cat-body.level-1 { background: linear-gradient(180deg, #ff9500 0%, #ff6b00 100%); }
+.cat-body.level-1 .ear { border-bottom-color: #ff9500; }
+
+.cat-body.level-2 { background: linear-gradient(180deg, #a8a8a8 0%, #6b6b6b 100%); }
+.cat-body.level-2 .ear { border-bottom-color: #a8a8a8; }
+
+.cat-body.level-3 { background: linear-gradient(180deg, #ffd700 0%, #ffaa00 100%); box-shadow: 0 4px 20px rgba(255, 215, 0, 0.6); }
+.cat-body.level-3 .ear { border-bottom-color: #ffd700; }
+
+.cat-body.level-4 { background: linear-gradient(180deg, #00d4ff 0%, #0099cc 100%); box-shadow: 0 4px 20px rgba(0, 212, 255, 0.6); }
+.cat-body.level-4 .ear { border-bottom-color: #00d4ff; }
+
+.cat-body.level-5 { background: linear-gradient(180deg, #ff00ff 0%, #cc00cc 100%); box-shadow: 0 4px 25px rgba(255, 0, 255, 0.7); }
+.cat-body.level-5 .ear { border-bottom-color: #ff00ff; }
+
+.cat-body.level-6 { background: linear-gradient(180deg, #00ff00 0%, #00cc00 100%); box-shadow: 0 4px 30px rgba(0, 255, 0, 0.8); }
+.cat-body.level-6 .ear { border-bottom-color: #00ff00; }

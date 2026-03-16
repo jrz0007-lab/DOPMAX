@@ -372,6 +372,7 @@ document.addEventListener('DOMContentLoaded', () => {
             try { setupDVDVideos(); } catch(e) { console.log('DVD error:', e); }
             try { setupCreator(); } catch(e) { console.log('Creator error:', e); }
             try { setupRoulette(); } catch(e) { console.log('Roulette error:', e); }
+            try { setupCatClicker(); } catch(e) { console.log('Cat clicker error:', e); }
         }, 200);
 
     } catch(error) {
@@ -459,6 +460,87 @@ function setupRoulette() {
     } catch(e) {
         console.log('Roulette setup error:', e);
     }
+}
+
+// Setup Gato Clicker
+let catClicks = 0;
+let catLevel = 1;
+let counterTimeout = null;
+
+const CAT_LEVELS = [
+    { level: 1, clicks: 0, name: 'Gato Normal', color: 'level-1' },
+    { level: 2, clicks: 5000, name: 'Gato Pro', color: 'level-2' },
+    { level: 3, clicks: 15000, name: 'Gato Dorado', color: 'level-3' },
+    { level: 4, clicks: 50000, name: 'Gato Diamante', color: 'level-4' },
+    { level: 5, clicks: 100000, name: 'Gato Arcoíris', color: 'level-5' },
+    { level: 6, clicks: 500000, name: 'Gato LEGENDARIO', color: 'level-6' }
+];
+
+function setupCatClicker() {
+    try {
+        const catBtn = document.getElementById('cat-clicker-btn');
+        const counter = document.getElementById('cat-counter');
+        const counterText = document.getElementById('counter-text');
+        const catBody = document.getElementById('cat-body');
+        const levelDisplay = document.getElementById('cat-level');
+        
+        if (!catBtn || !counter || !counterText) return;
+        
+        // Cargar clicks guardados
+        const savedClicks = localStorage.getItem('cat_clicks');
+        if (savedClicks) {
+            catClicks = parseInt(savedClicks);
+            updateCatLevel();
+        }
+        
+        // Click en el gato
+        catBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            catClicks++;
+            localStorage.setItem('cat_clicks', catClicks.toString());
+            
+            // Mostrar contador
+            counterText.textContent = catClicks;
+            counter.classList.add('visible');
+            
+            // Actualizar nivel
+            updateCatLevel();
+            
+            // Ocultar contador después de 5 segundos
+            if (counterTimeout) clearTimeout(counterTimeout);
+            counterTimeout = setTimeout(() => {
+                counter.classList.remove('visible');
+            }, 5000);
+            
+            // Efecto de animación
+            catBtn.style.transform = 'scale(0.9)';
+            setTimeout(() => {
+                catBtn.style.transform = 'scale(1)';
+            }, 100);
+        });
+        
+    } catch(e) {
+        console.log('Cat clicker error:', e);
+    }
+}
+
+function updateCatLevel() {
+    const catBody = document.getElementById('cat-body');
+    const levelDisplay = document.getElementById('cat-level');
+    
+    if (!catBody || !levelDisplay) return;
+    
+    // Encontrar nivel actual
+    let currentLevel = CAT_LEVELS[0];
+    for (const level of CAT_LEVELS) {
+        if (catClicks >= level.clicks) {
+            currentLevel = level;
+        }
+    }
+    
+    // Actualizar clase y texto
+    catBody.className = 'cat-body ' + currentLevel.color;
+    levelDisplay.textContent = currentLevel.name + ' (Nvl ' + currentLevel.level + ')';
 }
 
 function handleLogin() {
