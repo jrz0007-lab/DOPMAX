@@ -676,18 +676,27 @@ button, .tab, .dvd-video, .chat-item, .notification-item, .settings-item, .creat
 .nav-btn.create-btn {
     background: none;
     border-radius: 50%;
-    width: 50px;
-    height: 50px;
+    width: 60px;
+    height: 60px;
     justify-content: center;
     align-items: center;
-    margin-top: -15px;
+    margin-top: -20px;
 }
 
 .nav-btn.create-btn svg {
-    width: 40px;
-    height: 40px;
+    width: 50px;
+    height: 50px;
     color: #000;
     fill: #000;
+}
+
+.nav-btn.create-btn .nav-label {
+    position: absolute;
+    bottom: -18px;
+    font-size: 10px;
+    font-weight: 600;
+    color: #000;
+    white-space: nowrap;
 }
 
 .nav-btn.comment-nav-btn {

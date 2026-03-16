@@ -1991,20 +1991,25 @@ function initRoulette() {
     const wheel = document.getElementById('roulette-wheel');
     const wheelNumber = document.getElementById('wheel-number');
     const wheelResult = document.getElementById('wheel-result');
-    
+    const catContainer = document.getElementById('cat-clicker');
+
     if (!rouletteBtn) return;
-    
+
     // Open roulette
     rouletteBtn.addEventListener('click', () => {
         updateRouletteBalance();
         rouletteOverlay.classList.remove('hidden');
         startAutoCollect();
+        // Ocultar Pou cuando se abre la ruleta
+        if (catContainer) catContainer.classList.add('hidden');
     });
-    
+
     // Close roulette
     if (rouletteClose) {
         rouletteClose.addEventListener('click', () => {
             rouletteOverlay.classList.add('hidden');
+            // Mostrar Pou cuando se cierra la ruleta (si estás en home)
+            if (catContainer) catContainer.classList.remove('hidden');
         });
     }
     
