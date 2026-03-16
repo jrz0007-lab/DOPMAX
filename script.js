@@ -478,13 +478,24 @@ const CAT_LEVELS = [
 
 function setupCatClicker() {
     try {
+        const catContainer = document.getElementById('cat-clicker');
         const catBtn = document.getElementById('cat-clicker-btn');
         const counter = document.getElementById('cat-counter');
         const counterText = document.getElementById('counter-text');
-        const catBody = document.getElementById('cat-body');
+        const catImage = document.getElementById('cat-image');
         const levelDisplay = document.getElementById('cat-level');
         
-        if (!catBtn || !counter || !counterText) return;
+        if (!catContainer || !catBtn || !counter || !counterText) return;
+        
+        // Verificar si el usuario está logueado
+        const currentUser = DB.getCurrentUser();
+        if (!currentUser) {
+            catContainer.classList.add('hidden');
+            return;
+        }
+        
+        // Mostrar el gato solo si está logueado
+        catContainer.classList.remove('hidden');
         
         // Cargar clicks guardados
         const savedClicks = localStorage.getItem('cat_clicks');
@@ -499,7 +510,7 @@ function setupCatClicker() {
             catClicks++;
             localStorage.setItem('cat_clicks', catClicks.toString());
             
-            // Mostrar contador
+            // Mostrar contador (negro con números blancos)
             counterText.textContent = catClicks;
             counter.classList.add('visible');
             
@@ -525,10 +536,10 @@ function setupCatClicker() {
 }
 
 function updateCatLevel() {
-    const catBody = document.getElementById('cat-body');
+    const catImage = document.getElementById('cat-image');
     const levelDisplay = document.getElementById('cat-level');
     
-    if (!catBody || !levelDisplay) return;
+    if (!catImage || !levelDisplay) return;
     
     // Encontrar nivel actual
     let currentLevel = CAT_LEVELS[0];
@@ -539,7 +550,7 @@ function updateCatLevel() {
     }
     
     // Actualizar clase y texto
-    catBody.className = 'cat-body ' + currentLevel.color;
+    catImage.className = 'cat-image ' + currentLevel.color;
     levelDisplay.textContent = currentLevel.name + ' (Nvl ' + currentLevel.level + ')';
 }
 
@@ -653,25 +664,30 @@ function initializeApp(user) {
     // Hide loading and auth screens
     document.getElementById('loading-screen').classList.remove('active');
     document.getElementById('auth-screen').classList.remove('active');
-    
+
     // Update UI with user info
     document.getElementById('current-username').textContent = user.username;
     document.getElementById('profile-username').textContent = '@' + user.username;
     document.querySelector('.profile-pic-large').textContent = user.avatar;
     document.querySelector('.profile-avatar').textContent = user.avatar;
-    
+
     // Update room indicator
     document.getElementById('room-indicator').textContent = 'Sala: ' + user.room;
-    
+
     // Show home screen
     document.getElementById('home-screen').classList.add('active');
-    
+
     // Initialize DVD videos
     setTimeout(initDVDVideos, 100);
-    
+
     // Setup navigation
     setupNavigation();
-    
+
+    // Mostrar gato clicker cuando el usuario está logueado
+    setTimeout(() => {
+        setupCatClicker();
+    }, 300);
+
     // Load chats for current room
     loadChatsForRoom(user.room);
 }
