@@ -173,16 +173,16 @@ const DB = {
         if (users.length > 0) return; // Ya hay usuarios
 
         const defaultUsers = [
-            { id: '1', username: 'maria_gomez', password: '1234', room: 'Global', avatar: '👩', createdAt: new Date().toISOString() },
-            { id: '2', username: 'carlos_99', password: '1234', room: 'Global', avatar: '👨', createdAt: new Date().toISOString() },
-            { id: '3', username: 'lucia_fernandez', password: '1234', room: 'Global', avatar: '👧', createdAt: new Date().toISOString() },
-            { id: '4', username: 'pedro_sanchez', password: '1234', room: 'Musica', avatar: '👦', createdAt: new Date().toISOString() },
-            { id: '5', username: 'ana_lopez', password: '1234', room: 'Musica', avatar: '👩', createdAt: new Date().toISOString() },
-            { id: '6', username: 'dj_ricardo', password: '1234', room: 'Musica', avatar: '🎧', createdAt: new Date().toISOString() },
-            { id: '7', username: 'guitarhero', password: '1234', room: 'Musica', avatar: '🎸', createdAt: new Date().toISOString() },
-            { id: '8', username: 'sofia_music', password: '1234', room: 'Musica', avatar: '🎤', createdAt: new Date().toISOString() },
-            { id: '9', username: 'laura_artist', password: '1234', room: 'Musica', avatar: '🎹', createdAt: new Date().toISOString() },
-            { id: '10', username: 'chefmaster', password: '1234', room: 'Global', avatar: '👨‍🍳', createdAt: new Date().toISOString() }
+            { id: '1', username: 'maria_gomez', password: '1234', room: 'Global', avatar: 'M', createdAt: new Date().toISOString() },
+            { id: '2', username: 'carlos_99', password: '1234', room: 'Global', avatar: 'C', createdAt: new Date().toISOString() },
+            { id: '3', username: 'lucia_fernandez', password: '1234', room: 'Global', avatar: 'L', createdAt: new Date().toISOString() },
+            { id: '4', username: 'pedro_sanchez', password: '1234', room: 'Musica', avatar: 'P', createdAt: new Date().toISOString() },
+            { id: '5', username: 'ana_lopez', password: '1234', room: 'Musica', avatar: 'A', createdAt: new Date().toISOString() },
+            { id: '6', username: 'dj_ricardo', password: '1234', room: 'Musica', avatar: 'D', createdAt: new Date().toISOString() },
+            { id: '7', username: 'guitarhero', password: '1234', room: 'Musica', avatar: 'G', createdAt: new Date().toISOString() },
+            { id: '8', username: 'sofia_music', password: '1234', room: 'Musica', avatar: 'S', createdAt: new Date().toISOString() },
+            { id: '9', username: 'laura_artist', password: '1234', room: 'Musica', avatar: 'R', createdAt: new Date().toISOString() },
+            { id: '10', username: 'chefmaster', password: '1234', room: 'Global', avatar: 'H', createdAt: new Date().toISOString() }
         ];
 
         defaultUsers.forEach(user => DB.saveUser(user));
@@ -609,7 +609,7 @@ function handleRegister() {
         username: username,
         password: password,
         room: randomRoom,
-        avatar: ['🐱', '🐶', '🦊', '🐼', '🐨', '🦁'][Math.floor(Math.random() * 6)],
+        avatar: ['A', 'B', 'C', 'D', 'E', 'F'][Math.floor(Math.random() * 6)],
         createdAt: new Date().toISOString()
     };
 
@@ -662,11 +662,13 @@ function initializeApp(user) {
     // Setup navigation
     setupNavigation();
 
-    // Inicializar gato clicker (se mostrará/ocultará según navegación)
-    setupCatClicker();
-
     // Load chats for current room
     loadChatsForRoom(user.room);
+    
+    // Inicializar gato clicker SOLO cuando hay login
+    setTimeout(() => {
+        setupCatClicker();
+    }, 500);
 }
 
 function setupNavigation() {
