@@ -1815,42 +1815,27 @@ let dragVelocityX = 0, dragVelocityY = 0;
 
 let lastVideo = null;
 
-// Lista de videos - SOPORTA URLs locales y externas (Cloudinary, YouTube, etc.)
-// Para usar Cloudinary: sube tus videos a cloudinary.com y pega las URLs aquí
+// Lista de videos de Cloudinary - DOPMAX
 const videoList = [
-    // Ejemplos de URLs externas (reemplaza con las tuyas):
-    // Cloudinary: 'https://res.cloudinary.com/TU_CLOUD/video/upload/tu_video.mp4'
-    // YouTube: 'https://www.youtube.com/embed/VIDEO_ID'
-    // Google Drive: 'https://drive.google.com/uc?export=view&id=FILE_ID'
-    
-    // Videos locales (si los tienes en la carpeta videos/):
-    'videos/12313131.mp4',
-    'videos/13º112.mp4',
-    'videos/151511616.mp4',
-    'videos/151516162172172.mp4',
-    'videos/211.mp4',
-    'videos/314141.mp4',
-    'videos/521515.mp4',
-    'videos/525.mp4',
-    'videos/africa.mp4',
-    'videos/Download (1).mp4',
-    'videos/Download (2).mp4',
-    'videos/Download (3).mp4',
-    'videos/Download (4).mp4',
-    'videos/Download (5).mp4',
-    'videos/Download (6).mp4',
-    'videos/Download (7).mp4',
-    'videos/Download.mp4'
+    'https://res.cloudinary.com/dr5llopu0/video/upload/v1773824491/Download_1_npvpfo.mp4',
+    'https://res.cloudinary.com/dr5llopu0/video/upload/v1773824488/13%C2%BA112_xpn677.mp4',
+    'https://res.cloudinary.com/dr5llopu0/video/upload/v1773824486/Download_6_t0h1xv.mp4',
+    'https://res.cloudinary.com/dr5llopu0/video/upload/v1773824486/Download_5_tefkxd.mp4',
+    'https://res.cloudinary.com/dr5llopu0/video/upload/v1773824486/Download_2_uvswgp.mp4',
+    'https://res.cloudinary.com/dr5llopu0/video/upload/v1773824486/Download_4_e40d6m.mp4',
+    'https://res.cloudinary.com/dr5llopu0/video/upload/v1773824485/Download_3_cvttsl.mp4',
+    'https://res.cloudinary.com/dr5llopu0/video/upload/v1773824484/314141_wcbfxt.mp4',
+    'https://res.cloudinary.com/dr5llopu0/video/upload/v1773824484/12313131_iwv3zt.mp4',
+    'https://res.cloudinary.com/dr5llopu0/video/upload/v1773824483/521515_tmhf6o.mp4',
+    'https://res.cloudinary.com/dr5llopu0/video/upload/v1773824484/151516162172172_y8qnkj.mp4',
+    'https://res.cloudinary.com/dr5llopu0/video/upload/v1773824484/africa_qqp1hm.mp4',
+    'https://res.cloudinary.com/dr5llopu0/video/upload/v1773824484/151511616_lct0si.mp4',
+    'https://res.cloudinary.com/dr5llopu0/video/upload/v1773824482/Download_ks1gec.mp4',
+    'https://res.cloudinary.com/dr5llopu0/video/upload/v1773824482/525_qtomhc.mp4',
+    'https://res.cloudinary.com/dr5llopu0/video/upload/v1773824481/211_cowcom.mp4',
+    'https://res.cloudinary.com/dr5llopu0/video/upload/v1773824481/Download_7_nynrna.mp4',
+    'https://res.cloudinary.com/dr5llopu0/video/upload/v1773824478/13%C2%BA112_dveosy.mp4'
 ];
-
-// URLs de ejemplo para Cloudinary (REEMPLAZA con tus URLs reales después de subir los videos)
-const cloudinaryExamples = [
-    'https://res.cloudinary.com/demo/video/upload/v1339632923/sample.mp4', // Video de ejemplo de Cloudinary
-    'https://res.cloudinary.com/demo/video/upload/v1468318720/smithsonian.mp4'
-];
-
-// Si quieres usar videos de Cloudinary, descomenta la siguiente línea y reemplaza con tus URLs:
-// const videoList = cloudinaryExamples;
 
 function getRandomVideo(currentVideo) {
     if (videoList.length <= 1) return videoList[0];
