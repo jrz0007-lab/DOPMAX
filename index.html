@@ -217,6 +217,7 @@
                 <svg viewBox="0 0 24 24" fill="currentColor">
                     <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
                 </svg>
+                <span class="nav-label">Crear</span>
             </button>
             <button class="nav-btn" data-screen="profile">
                 <div class="profile-avatar">ðŸ±</div>
@@ -320,6 +321,7 @@
                 <svg viewBox="0 0 24 24" fill="currentColor">
                     <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
                 </svg>
+                <span class="nav-label">Crear</span>
             </button>
             <button class="nav-btn" data-screen="profile">
                 <div class="profile-avatar">ðŸ±</div>
@@ -380,13 +382,142 @@
             </div>
             
             <div class="settings-menu">
-                <button class="settings-item">Privacidad de la Cuenta</button>
-                <button class="settings-item">Foto de Perfil</button>
-                <button class="settings-item">Cuentas bloqueadas</button>
-                <button class="settings-item">Tiempo en pantalla</button>
-                <button class="settings-item">Preferencias de contenido</button>
-                <button class="settings-item">Cuenta de Empresa</button>
+                <button class="settings-item" id="btn-privacidad">Privacidad de la Cuenta</button>
+                <button class="settings-item" id="btn-foto-perfil">Foto de Perfil</button>
+                <button class="settings-item" id="btn-bloqueadas">Cuentas bloqueadas</button>
+                <button class="settings-item" id="btn-tiempo">Tiempo en pantalla</button>
+                <button class="settings-item" id="btn-preferencias">Preferencias de contenido</button>
+                <button class="settings-item" id="btn-empresa">Cuenta de Empresa</button>
                 <button class="settings-item" id="logout-settings">Cerrar Sesion</button>
+            </div>
+        </div>
+
+        <!-- Modales para ajustes -->
+        <div class="settings-modal hidden" id="modal-foto-perfil">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>Cambiar Foto de Perfil</h3>
+                    <button class="modal-close" id="close-foto-perfil">X</button>
+                </div>
+                <div class="modal-body">
+                    <p>Introduce la URL de una imagen (ej: imgur.com/imagen.png)</p>
+                    <input type="text" id="foto-url-input" placeholder="https://i.imgur.com/ejemplo.png">
+                    <button class="modal-btn" id="guardar-foto">Guardar Foto</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="settings-modal hidden" id="modal-tiempo">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>Tiempo en Pantalla</h3>
+                    <button class="modal-close" id="close-tiempo">X</button>
+                </div>
+                <div class="modal-body">
+                    <div class="tiempo-stats">
+                        <div class="tiempo-item">
+                            <span class="tiempo-label">Hoy:</span>
+                            <span class="tiempo-value" id="tiempo-hoy">0h 0m</span>
+                        </div>
+                        <div class="tiempo-item">
+                            <span class="tiempo-label">Esta semana:</span>
+                            <span class="tiempo-value" id="tiempo-semana">0h 0m</span>
+                        </div>
+                        <div class="tiempo-item">
+                            <span class="tiempo-label">Este mes:</span>
+                            <span class="tiempo-value" id="tiempo-mes">0h 0m</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="settings-modal hidden" id="modal-bloqueadas">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>Cuentas Bloqueadas</h3>
+                    <button class="modal-close" id="close-bloqueadas">X</button>
+                </div>
+                <div class="modal-body">
+                    <div id="lista-bloqueadas" class="lista-items">
+                        <p class="no-items">No tienes cuentas bloqueadas</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="settings-modal hidden" id="modal-privacidad">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>Privacidad de la Cuenta</h3>
+                    <button class="modal-close" id="close-privacidad">X</button>
+                </div>
+                <div class="modal-body">
+                    <div class="opcion-privacidad">
+                        <label>
+                            <input type="checkbox" id="opcion-cuenta-privada"> Cuenta Privada
+                        </label>
+                        <p class="opcion-desc">Solo tus seguidores aprobados podrán ver tu contenido</p>
+                    </div>
+                    <div class="opcion-privacidad">
+                        <label>
+                            <input type="checkbox" id="opcion-mensajes"> Mensajes Directos
+                        </label>
+                        <p class="opcion-desc">Permitir mensajes de todos los usuarios</p>
+                    </div>
+                    <div class="opcion-privacidad">
+                        <label>
+                            <input type="checkbox" id="opcion-comentarios"> Comentarios
+                        </label>
+                        <p class="opcion-desc">Permitir comentarios en tus videos</p>
+                    </div>
+                    <button class="modal-btn" id="guardar-privacidad">Guardar Cambios</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="settings-modal hidden" id="modal-preferencias">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>Preferencias de Contenido</h3>
+                    <button class="modal-close" id="close-preferencias">X</button>
+                </div>
+                <div class="modal-body">
+                    <div class="opcion-privacidad">
+                        <label>
+                            <input type="checkbox" id="opcion-musica"> Música
+                        </label>
+                    </div>
+                    <div class="opcion-privacidad">
+                        <label>
+                            <input type="checkbox" id="opcion-gaming"> Gaming
+                        </label>
+                    </div>
+                    <div class="opcion-privacidad">
+                        <label>
+                            <input type="checkbox" id="opcion-deportes"> Deportes
+                        </label>
+                    </div>
+                    <div class="opcion-privacidad">
+                        <label>
+                            <input type="checkbox" id="opcion-comedia"> Comedia
+                        </label>
+                    </div>
+                    <button class="modal-btn" id="guardar-preferencias">Guardar Preferencias</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="settings-modal hidden" id="modal-empresa">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>Cuenta de Empresa</h3>
+                    <button class="modal-close" id="close-empresa">X</button>
+                </div>
+                <div class="modal-body">
+                    <p>Las cuentas de empresa tienen acceso a estadísticas avanzadas y herramientas de promoción.</p>
+                    <button class="modal-btn" id="activar-empresa">Activar Cuenta de Empresa</button>
+                </div>
             </div>
         </div>
         <nav class="bottom-nav yellow-nav">
@@ -406,6 +537,7 @@
                 <svg viewBox="0 0 24 24" fill="currentColor">
                     <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
                 </svg>
+                <span class="nav-label">Crear</span>
             </button>
             <button class="nav-btn active" data-screen="profile">
                 <div class="profile-avatar">ðŸ±</div>
@@ -414,31 +546,10 @@
         </nav>
     </div>
 
-    <!-- Gato Clicker Game -->
+    <!-- Pou Clicker Game -->
     <div class="cat-clicker-container hidden" id="cat-clicker">
         <div class="cat-clicker-btn" id="cat-clicker-btn">
-            <svg class="cat-svg" viewBox="0 0 100 100" id="cat-svg">
-                <!-- Orejas -->
-                <polygon points="25,15 35,5 40,20" class="cat-ear"/>
-                <polygon points="75,15 65,5 60,20" class="cat-ear"/>
-                <!-- Cabeza -->
-                <ellipse cx="50" cy="55" rx="35" ry="30" class="cat-head"/>
-                <!-- Ojos -->
-                <circle cx="38" cy="50" r="8" class="cat-eye"/>
-                <circle cx="62" cy="50" r="8" class="cat-eye"/>
-                <circle cx="40" cy="52" r="3" class="cat-pupil"/>
-                <circle cx="64" cy="52" r="3" class="cat-pupil"/>
-                <!-- Nariz -->
-                <ellipse cx="50" cy="62" rx="3" ry="2" class="cat-nose"/>
-                <!-- Bigotes -->
-                <line x1="25" y1="60" x2="15" y2="58" class="cat-whisker"/>
-                <line x1="25" y1="65" x2="15" y2="67" class="cat-whisker"/>
-                <line x1="75" y1="60" x2="85" y2="58" class="cat-whisker"/>
-                <line x1="75" y1="65" x2="85" y2="67" class="cat-whisker"/>
-                <!-- Patas -->
-                <ellipse cx="35" cy="85" rx="8" ry="10" class="cat-paw"/>
-                <ellipse cx="65" cy="85" rx="8" ry="10" class="cat-paw"/>
-            </svg>
+            <img src="OIP (1).png" alt="Pou" class="pou-image" id="pou-image"/>
             <div class="click-counter" id="click-counter"></div>
         </div>
     </div>

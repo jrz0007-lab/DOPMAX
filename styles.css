@@ -676,18 +676,39 @@ button, .tab, .dvd-video, .chat-item, .notification-item, .settings-item, .creat
 .nav-btn.create-btn {
     background: none;
     border-radius: 50%;
-    width: 50px;
-    height: 50px;
+    width: 45px;
+    height: 45px;
     justify-content: center;
     align-items: center;
-    margin-top: -15px;
+    margin-top: -20px;
+    position: relative;
 }
 
 .nav-btn.create-btn svg {
-    width: 40px;
-    height: 40px;
+    width: 35px;
+    height: 35px;
+    color: rgba(0, 0, 0, 0.6);
+    fill: currentColor;
+}
+
+.nav-btn.create-btn .nav-label {
+    position: absolute;
+    bottom: -18px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 11px;
+    font-weight: 600;
+    color: rgba(0, 0, 0, 0.6);
+    white-space: nowrap;
+}
+
+.nav-btn.create-btn:hover {
     color: #000;
-    fill: #000;
+    transform: scale(1.05);
+}
+
+.nav-btn.create-btn:hover .nav-label {
+    color: #000;
 }
 
 .nav-btn.comment-nav-btn {
@@ -1838,7 +1859,7 @@ button, .tab, .dvd-video, .chat-item, .notification-item, .settings-item, .creat
 }
 
 /* ============================================
-   GATO CLICKER GAME - Minimalista
+   POU CLICKER GAME - Minimalista
    ============================================ */
 .cat-clicker-container {
     position: fixed;
@@ -1856,8 +1877,8 @@ button, .tab, .dvd-video, .chat-item, .notification-item, .settings-item, .creat
 }
 
 .cat-clicker-btn {
-    width: 80px;
-    height: 80px;
+    width: 150px;
+    height: 150px;
     cursor: pointer;
     pointer-events: auto;
     transition: transform 0.1s;
@@ -1875,11 +1896,12 @@ button, .tab, .dvd-video, .chat-item, .notification-item, .settings-item, .creat
     transform: scale(1.05);
 }
 
-.cat-svg {
+.pou-image {
     width: 100%;
     height: 100%;
+    object-fit: contain;
     filter: drop-shadow(0 4px 8px rgba(0,0,0,0.3));
-    transition: all 0.3s;
+    transition: filter 0.3s;
 }
 
 /* Contador flotante estilo Startrak/Bongo Cat */
@@ -1914,64 +1936,197 @@ button, .tab, .dvd-video, .chat-item, .notification-item, .settings-item, .creat
     }
 }
 
-/* Colores del gato por niveles */
-.cat-ear, .cat-head {
-    fill: #ff9500;
-    transition: fill 0.3s;
-}
-
-.cat-eye {
-    fill: #fff;
-}
-
-.cat-pupil {
-    fill: #333;
-}
-
-.cat-nose {
-    fill: #ff6b6b;
-}
-
-.cat-whisker {
-    stroke: #fff;
-    stroke-width: 2;
-    stroke-linecap: round;
-}
-
-.cat-paw {
-    fill: #fff;
+/* Filtros para niveles del Pou */
+.pou-image.level-1 {
+    filter: drop-shadow(0 4px 8px rgba(0,0,0,0.3));
 }
 
 /* Nivel 2 - Gris */
-.cat-svg.level-2 .cat-ear,
-.cat-svg.level-2 .cat-head {
-    fill: #a8a8a8;
+.pou-image.level-2 {
+    filter: drop-shadow(0 4px 15px rgba(168, 168, 168, 0.5)) grayscale(0.8);
 }
 
 /* Nivel 3 - Dorado */
-.cat-svg.level-3 .cat-ear,
-.cat-svg.level-3 .cat-head {
-    fill: #ffd700;
-    filter: drop-shadow(0 0 10px rgba(255, 215, 0, 0.8));
+.pou-image.level-3 {
+    filter: drop-shadow(0 4px 20px rgba(255, 215, 0, 0.8)) sepia(1) saturate(2);
 }
 
 /* Nivel 4 - Azul */
-.cat-svg.level-4 .cat-ear,
-.cat-svg.level-4 .cat-head {
-    fill: #00d4ff;
-    filter: drop-shadow(0 0 10px rgba(0, 212, 255, 0.8));
+.pou-image.level-4 {
+    filter: drop-shadow(0 4px 20px rgba(0, 212, 255, 0.8)) hue-rotate(180deg);
 }
 
 /* Nivel 5 - Rosa */
-.cat-svg.level-5 .cat-ear,
-.cat-svg.level-5 .cat-head {
-    fill: #ff00ff;
-    filter: drop-shadow(0 0 12px rgba(255, 0, 255, 0.9));
+.pou-image.level-5 {
+    filter: drop-shadow(0 4px 25px rgba(255, 0, 255, 0.9)) hue-rotate(280deg) saturate(2);
 }
 
 /* Nivel 6 - Verde */
-.cat-svg.level-6 .cat-ear,
-.cat-svg.level-6 .cat-head {
-    fill: #00ff00;
-    filter: drop-shadow(0 0 15px rgba(0, 255, 0, 1));
+.pou-image.level-6 {
+    filter: drop-shadow(0 4px 30px rgba(0, 255, 0, 1)) hue-rotate(120deg) saturate(3);
+}
+
+/* ============================================
+   MODALES DE AJUSTES
+   ============================================ */
+.settings-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.7);
+    z-index: 2000;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.settings-modal.hidden {
+    display: none;
+}
+
+.modal-content {
+    background: #fff;
+    border-radius: 20px;
+    width: 90%;
+    max-width: 400px;
+    max-height: 80vh;
+    overflow-y: auto;
+    color: #000;
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.modal-header h3 {
+    font-size: 18px;
+    font-weight: 700;
+    margin: 0;
+}
+
+.modal-close {
+    background: none;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+    color: #666;
+    padding: 5px;
+}
+
+.modal-body {
+    padding: 20px;
+}
+
+.modal-body p {
+    margin-bottom: 15px;
+    color: #666;
+}
+
+.modal-body input[type="text"] {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #e0e0e0;
+    border-radius: 10px;
+    font-size: 14px;
+    margin-bottom: 15px;
+}
+
+.modal-btn {
+    width: 100%;
+    padding: 14px;
+    background: linear-gradient(135deg, #f7b916 0%, #f5a623 100%);
+    border: none;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 700;
+    color: #000;
+    cursor: pointer;
+}
+
+.opcion-privacidad {
+    margin-bottom: 20px;
+}
+
+.opcion-privacidad label {
+    display: flex;
+    align-items: center;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.opcion-privacidad input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+    margin-right: 10px;
+    accent-color: #f7b916;
+}
+
+.opcion-desc {
+    font-size: 13px;
+    color: #999;
+    margin-top: 5px;
+    margin-left: 30px;
+}
+
+.tiempo-stats {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.tiempo-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 15px;
+    background: #f5f5f5;
+    border-radius: 10px;
+}
+
+.tiempo-label {
+    font-weight: 600;
+    color: #666;
+}
+
+.tiempo-value {
+    font-weight: 700;
+    color: #f7b916;
+}
+
+.lista-items {
+    min-height: 100px;
+}
+
+.no-items {
+    text-align: center;
+    color: #999;
+    padding: 20px;
+}
+
+.bloqueado-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.bloqueado-item .username {
+    font-weight: 600;
+}
+
+.bloqueado-item .desbloquear-btn {
+    background: #f7b916;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
 }
