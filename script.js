@@ -2187,36 +2187,34 @@ function loadVideoComments(videoId) {
     currentVideoId = videoId;
     const commentsList = document.getElementById('comments-list');
 
-    if (!commentsList) return;
-
-    // Intentar cargar desde la API en producción
-    if (typeof API !== 'undefined' && isProduction) {
-        API.getVideoComments(videoId)
-            .then(result => {
-                if (result.success && result.comentarios && result.comentarios.length > 0) {
-                    renderComments(comentariosList, result.comentarios);
-                } else {
-                    // Fallback a localStorage
-                    const comments = DB.getVideoComments(videoId);
-                    renderComments(commentsList, comments);
-                }
-            })
-            .catch(err => {
-                console.error('Error cargando comentarios:', err);
-                const comments = DB.getVideoComments(videoId);
-                renderComments(commentsList, comments);
-            });
-    } else {
-        // Usar localStorage (desarrollo)
-        const comments = DB.getVideoComments(videoId);
-        renderComments(commentsList, comments);
+    if (!commentsList) {
+        console.error('❌ No existe comments-list');
+        return;
     }
+
+    console.log('📹 Cargando comentarios del video:', videoId);
+
+    // SIEMPRE usar DBClient para cargar comentarios de la BD
+    DBClient.getVideoComments(videoId)
+        .then(result => {
+            console.log('Comentarios recibidos:', result);
+            
+            if (result.success && result.comentarios) {
+                renderComments(commentsList, result.comentarios);
+            } else {
+                commentsList.innerHTML = '<div class="no-comments">Sé el primero en comentar</div>';
+            }
+        })
+        .catch(err => {
+            console.error('❌ Error cargando comentarios:', err);
+            commentsList.innerHTML = '<div class="no-comments">Error al cargar comentarios</div>';
+        });
 }
 
 function renderComments(commentsList, comments) {
-    console.log('Cargando comentarios:', comments.length);
+    console.log('Renderizando comentarios:', comments ? comments.length : 0);
 
-    if (comments.length === 0) {
+    if (!comments || comments.length === 0) {
         commentsList.innerHTML = '<div class="no-comments">Sé el primero en comentar</div>';
         return;
     }
@@ -2226,11 +2224,11 @@ function renderComments(commentsList, comments) {
         const commentEl = document.createElement('div');
         commentEl.className = 'comment-item';
         commentEl.innerHTML = `
-            <div class="comment-avatar">${comment.avatar || comment.user_avatar || '👤'}</div>
+            <div class="comment-avatar">${comment.avatar || '👤'}</div>
             <div class="comment-content">
-                <div class="comment-user">${comment.username || comment.usuario}</div>
-                <div class="comment-text">${comment.text || comment.contenido}</div>
-                <div class="comment-time">${comment.time || formatTimestamp(comment.created_at)}</div>
+                <div class="comment-user">${comment.usuario || comment.username}</div>
+                <div class="comment-text">${comment.contenido || comment.text}</div>
+                <div class="comment-time">${formatTimestamp(comment.created_at)}</div>
             </div>
         `;
         commentsList.appendChild(commentEl);
@@ -2245,35 +2243,45 @@ function formatTimestamp(timestamp) {
 }
 
 function sendVideoComment() {
-    if (!currentVideoId) return;
-
-    const input = document.getElementById("comment-input");
-    const text = input.value.trim();
-    if (!text) return;
-
-    const currentUser = DB.getCurrentUser();
-    if (!currentUser) {
-        alert("Debes iniciar sesión para comentar");
+    if (!currentVideoId) {
+        console.error('❌ No hay video seleccionado');
         return;
     }
 
-    console.log("💬 Enviando comentario:", text);
+    const input = document.getElementById('comment-input');
+    const text = input ? input.value.trim() : '';
+    
+    if (!text) {
+        console.warn('⚠️ Comentario vacío');
+        return;
+    }
 
-    // SIEMPRE usar DBClient para enviar comentarios
+    const currentUser = DB.getCurrentUser();
+    if (!currentUser) {
+        alert('Debes iniciar sesión para comentar');
+        return;
+    }
+
+    console.log('💬 Enviando comentario al video:', currentVideoId, 'Texto:', text);
+
+    // Usar DBClient para enviar comentario a la BD
     DBClient.addVideoComment(currentVideoId, text)
         .then(result => {
-            console.log("Resultado comentario:", result);
-            
+            console.log('✅ Resultado comentario:', result);
+
             if (result.success) {
-                input.value = "";
+                console.log('Comentario guardado en BD');
+                input.value = '';
+                // Recargar comentarios para mostrar el nuevo
                 loadVideoComments(currentVideoId);
             } else {
-                alert(result.error || "No se pudo enviar el comentario");
+                console.error('Error en comentario:', result.error);
+                alert(result.error || 'No se pudo enviar el comentario');
             }
         })
         .catch(err => {
-            console.error("Error enviando comentario:", err);
-            alert("Error de conexión al enviar comentario");
+            console.error('❌ Error enviando comentario:', err);
+            alert('Error de conexión al enviar comentario');
         });
 }
 
