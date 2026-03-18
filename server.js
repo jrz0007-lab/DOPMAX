@@ -871,47 +871,57 @@ app.get('*', (req, res) => {
 
 // Inicializar comentarios por defecto en videos
 async function initVideoComments() {
-    if (!pool) return;
+    if (!pool) {
+        console.log('⚠️ No hay conexión para inicializar comentarios');
+        return;
+    }
     
     try {
-        // Verificar si ya hay comentarios
-        const countResult = await pool.query('SELECT COUNT(*) FROM comentarios_video');
-        const count = parseInt(countResult.rows[0].count);
-        
-        if (count > 0) {
-            console.log('✅ Comentarios ya inicializados:', count);
-            return;
-        }
-
-        // Obtener primeros 3 videos
-        const videosResult = await pool.query('SELECT id FROM videos ORDER BY created_at LIMIT 3');
+        // Obtener todos los videos
+        const videosResult = await pool.query('SELECT id FROM videos ORDER BY created_at');
         
         if (videosResult.rows.length === 0) {
             console.log('⚠️ No hay videos para inicializar comentarios');
             return;
         }
 
+        console.log(`📹 Inicializando comentarios para ${videosResult.rows.length} videos...`);
+
         // Comentarios por defecto
         const defaultComments = [
-            { usuario: 'admin', contenido: '¡Me encanta este video! 🔥' },
-            { usuario: 'admin', contenido: 'Esto es increíble 😍' },
-            { usuario: 'admin', contenido: '¿Alguien más viendo esto? 👀' },
-            { usuario: 'admin', contenido: '¡Brutal! 💯' },
-            { usuario: 'admin', contenido: 'Necesito más contenido así' }
+            '¡Me encanta este video! 🔥',
+            'Esto es increíble 😍',
+            '¿Alguien más viendo esto? 👀',
+            '¡Brutal! 💯',
+            'Necesito más contenido así'
         ];
 
-        // Agregar comentarios a cada video
+        let commentsAdded = 0;
+
+        // Agregar 2 comentarios a cada video
         for (const video of videosResult.rows) {
-            const numComments = 2 + Math.floor(Math.random() * 2); // 2-3 comentarios por video
-            for (let i = 0; i < numComments && i < defaultComments.length; i++) {
-                await pool.query(
-                    'INSERT INTO comentarios_video (video_id, usuario, contenido) VALUES ($1, $2, $3)',
-                    [video.id, defaultComments[i].usuario, defaultComments[i].contenido]
-                );
+            // Verificar si el video ya tiene comentarios
+            const existingComments = await pool.query(
+                'SELECT COUNT(*) FROM comentarios_video WHERE video_id = $1',
+                [video.id]
+            );
+            
+            const commentCount = parseInt(existingComments.rows[0].count);
+            
+            // Si tiene menos de 2 comentarios, agregar
+            if (commentCount < 2) {
+                for (let i = 0; i < 2 - commentCount; i++) {
+                    const randomComment = defaultComments[Math.floor(Math.random() * defaultComments.length)];
+                    await pool.query(
+                        'INSERT INTO comentarios_video (video_id, usuario, contenido) VALUES ($1, $2, $3) ON CONFLICT DO NOTHING',
+                        [video.id, 'admin', randomComment]
+                    );
+                    commentsAdded++;
+                }
             }
         }
 
-        console.log('✅ Comentarios inicializados en videos');
+        console.log(`✅ Comentarios inicializados: ${commentsAdded} nuevos`);
     } catch (error) {
         console.error('❌ Error inicializando comentarios:', error);
     }
