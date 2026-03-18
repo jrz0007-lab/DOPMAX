@@ -1197,13 +1197,20 @@ function loadChatMessages(chatId, roomName) {
 }
 
 // Chat overlay handlers
-document.getElementById('back-to-inbox').addEventListener('click', () => {
-    document.getElementById('chat-overlay').classList.remove('active');
-    document.getElementById('chat-overlay').classList.add('hidden');
+const backToInbox = document.getElementById('back-to-inbox');
+if (backToInbox) backToInbox.addEventListener('click', () => {
+    const chatOverlay = document.getElementById('chat-overlay');
+    if (chatOverlay) {
+        chatOverlay.classList.remove('active');
+        chatOverlay.classList.add('hidden');
+    }
 });
 
-document.getElementById('chat-send-btn').addEventListener('click', sendChatMessage);
-document.getElementById('chat-input').addEventListener('keypress', (e) => {
+const chatSendBtn = document.getElementById('chat-send-btn');
+if (chatSendBtn) chatSendBtn.addEventListener('click', sendChatMessage);
+
+const chatInput = document.getElementById('chat-input');
+if (chatInput) chatInput.addEventListener('keypress', (e) => {
     if (e.key === 'Enter') sendChatMessage();
 });
 
@@ -2339,23 +2346,38 @@ function initCommentEvents() {
     }
 }
 
-document.getElementById('comment-nav-btn').addEventListener('click', () => { if (selectedVideo) showCommentsPanel(); });
-document.getElementById('close-comments').addEventListener('click', hideCommentsPanel);
+// Event listeners con validación
+const commentNavBtn = document.getElementById('comment-nav-btn');
+if (commentNavBtn) commentNavBtn.addEventListener('click', () => { if (selectedVideo) showCommentsPanel(); });
+
+const closeCommentsBtn = document.getElementById('close-comments');
+if (closeCommentsBtn) closeCommentsBtn.addEventListener('click', hideCommentsPanel);
 
 // Creator
-document.getElementById('upload-btn').addEventListener('click', () => document.getElementById('video-upload').click());
-document.getElementById('video-upload').addEventListener('change', (e) => {
+const uploadBtn = document.getElementById('upload-btn');
+if (uploadBtn) uploadBtn.addEventListener('click', () => {
+    const videoUpload = document.getElementById('video-upload');
+    if (videoUpload) videoUpload.click();
+});
+
+const videoUpload = document.getElementById('video-upload');
+if (videoUpload) videoUpload.addEventListener('change', (e) => {
     if (e.target.files[0]) {
-        document.getElementById('upload-progress').classList.remove('hidden');
+        const uploadProgress = document.getElementById('upload-progress');
+        if (uploadProgress) uploadProgress.classList.remove('hidden');
         setTimeout(() => {
-            document.getElementById('upload-progress').classList.add('hidden');
-            document.getElementById('upload-success').classList.remove('hidden');
+            if (uploadProgress) uploadProgress.classList.add('hidden');
+            const uploadSuccess = document.getElementById('upload-success');
+            if (uploadSuccess) uploadSuccess.classList.remove('hidden');
         }, 2000);
     }
 });
-document.getElementById('publish-btn').addEventListener('click', () => {
+
+const publishBtn = document.getElementById('publish-btn');
+if (publishBtn) publishBtn.addEventListener('click', () => {
     alert('Video publicado!');
-    document.getElementById('upload-success').classList.add('hidden');
+    const uploadSuccess = document.getElementById('upload-success');
+    if (uploadSuccess) uploadSuccess.classList.add('hidden');
     navigateToScreen('home');
 });
 
