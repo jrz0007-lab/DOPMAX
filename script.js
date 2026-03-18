@@ -850,32 +850,56 @@ function handleLogin() {
         return;
     }
 
-    const user = DB.getUserByUsername(username);
-    if (!user) {
-        errorEl.textContent = 'Usuario no encontrado';
-        errorEl.classList.remove('hidden');
-        return;
+    // Usar DBClient para login (conecta a la BD en Render)
+    if (typeof DBClient !== 'undefined') {
+        DBClient.login(username, password)
+            .then(result => {
+                if (result.success) {
+                    // Guardar inicio de sesión para tiempo en pantalla
+                    localStorage.setItem('dopmax_session_start', Date.now().toString());
+                    // Inicializar app directamente sin recargar
+                    setTimeout(() => {
+                        initializeApp(result.user);
+                    }, 200);
+                } else {
+                    errorEl.textContent = result.error || 'Error en el login';
+                    errorEl.classList.remove('hidden');
+                }
+            })
+            .catch(err => {
+                console.error('Error en login:', err);
+                errorEl.textContent = 'Error de conexión. Inténtalo de nuevo.';
+                errorEl.classList.remove('hidden');
+            });
+    } else {
+        // Fallback al método local
+        const user = DB.getUserByUsername(username);
+        if (!user) {
+            errorEl.textContent = 'Usuario no encontrado';
+            errorEl.classList.remove('hidden');
+            return;
+        }
+
+        if (user.password !== password) {
+            errorEl.textContent = 'Contraseña incorrecta';
+            errorEl.classList.remove('hidden');
+            return;
+        }
+
+        // Assign new room on login
+        const newRoom = DB.assignRoom(username);
+        user.room = newRoom;
+
+        DB.setCurrentUser(user);
+
+        // Guardar inicio de sesión para tiempo en pantalla
+        localStorage.setItem('dopmax_session_start', Date.now().toString());
+
+        // Inicializar app directamente sin recargar
+        setTimeout(() => {
+            initializeApp(user);
+        }, 200);
     }
-
-    if (user.password !== password) {
-        errorEl.textContent = 'Contraseña incorrecta';
-        errorEl.classList.remove('hidden');
-        return;
-    }
-
-    // Assign new room on login
-    const newRoom = DB.assignRoom(username);
-    user.room = newRoom;
-
-    DB.setCurrentUser(user);
-    
-    // Guardar inicio de sesión para tiempo en pantalla
-    localStorage.setItem('dopmax_session_start', Date.now().toString());
-    
-    // Inicializar app directamente sin recargar
-    setTimeout(() => {
-        initializeApp(user);
-    }, 200);
 }
 
 function handleRegister() {
@@ -908,56 +932,91 @@ function handleRegister() {
         return;
     }
 
-    if (DB.getUserByUsername(username)) {
-        errorEl.textContent = 'Este nombre de usuario ya está en uso';
-        errorEl.classList.remove('hidden');
-        return;
+    // Usar DBClient para registro (conecta a la BD en Render)
+    if (typeof DBClient !== 'undefined') {
+        DBClient.register(username, password)
+            .then(result => {
+                if (result.success) {
+                    // Guardar inicio de sesión para tiempo en pantalla
+                    localStorage.setItem('dopmax_session_start', Date.now().toString());
+                    // Inicializar app directamente sin recargar
+                    setTimeout(() => {
+                        initializeApp(result.user);
+                    }, 200);
+                } else {
+                    errorEl.textContent = result.error || 'Error en el registro';
+                    errorEl.classList.remove('hidden');
+                }
+            })
+            .catch(err => {
+                console.error('Error en registro:', err);
+                errorEl.textContent = 'Error de conexión. Inténtalo de nuevo.';
+                errorEl.classList.remove('hidden');
+            });
+    } else {
+        // Fallback al método local
+        if (DB.getUserByUsername(username)) {
+            errorEl.textContent = 'Este nombre de usuario ya está en uso';
+            errorEl.classList.remove('hidden');
+            return;
+        }
+
+        const rooms = ['Global', 'Musica'];
+        const randomRoom = rooms[Math.floor(Math.random() * rooms.length)];
+
+        const newUser = {
+            id: Date.now().toString(),
+            username: username,
+            password: password,
+            room: randomRoom,
+            avatar: ['A', 'B', 'C', 'D', 'E', 'F'][Math.floor(Math.random() * 6)],
+            createdAt: new Date().toISOString()
+        };
+
+        DB.saveUser(newUser);
+        DB.setCurrentUser(newUser);
+
+        // Inicializar app directamente sin recargar
+        setTimeout(() => {
+            initializeApp(newUser);
+        }, 200);
     }
-
-    const rooms = ['Global', 'Musica'];
-    const randomRoom = rooms[Math.floor(Math.random() * rooms.length)];
-
-    const newUser = {
-        id: Date.now().toString(),
-        username: username,
-        password: password,
-        room: randomRoom,
-        avatar: ['A', 'B', 'C', 'D', 'E', 'F'][Math.floor(Math.random() * 6)],
-        createdAt: new Date().toISOString()
-    };
-
-    DB.saveUser(newUser);
-    DB.setCurrentUser(newUser);
-    
-    // Inicializar app directamente sin recargar
-    setTimeout(() => {
-        initializeApp(newUser);
-    }, 200);
 }
 
 function handleLogout() {
     console.log('Cerrando sesión...');
-    
-    DB.setCurrentUser(null);
-    
+
+    // Usar DBClient si está disponible
+    if (typeof DBClient !== 'undefined') {
+        DBClient.logout().then(() => {
+            DB.setCurrentUser(null);
+            completeLogout();
+        });
+    } else {
+        DB.setCurrentUser(null);
+        completeLogout();
+    }
+}
+
+function completeLogout() {
     // Ocultar todas las pantallas excepto auth
     document.querySelectorAll('.screen').forEach(s => {
         s.classList.remove('active');
         s.style.display = 'none';
     });
-    
+
     // Mostrar auth screen
     const authScreen = document.getElementById('auth-screen');
     const loginForm = document.getElementById('login-form');
     const registerForm = document.getElementById('register-form');
-    
+
     if (authScreen) {
         authScreen.classList.add('active');
         authScreen.style.display = 'flex';
     }
     if (loginForm) loginForm.classList.remove('hidden');
     if (registerForm) registerForm.classList.add('hidden');
-    
+
     // Ocultar gato
     const catContainer = document.getElementById('cat-clicker');
     if (catContainer) catContainer.classList.add('hidden');
@@ -970,7 +1029,7 @@ function handleLogout() {
     const registerConfirm = document.getElementById('register-confirm');
     const loginError = document.getElementById('login-error');
     const registerError = document.getElementById('register-error');
-    
+
     if (loginUsername) loginUsername.value = '';
     if (loginPassword) loginPassword.value = '';
     if (registerUsername) registerUsername.value = '';
@@ -978,7 +1037,7 @@ function handleLogout() {
     if (registerConfirm) registerConfirm.value = '';
     if (loginError) loginError.classList.add('hidden');
     if (registerError) registerError.classList.add('hidden');
-    
+
     console.log('✅ Sesión cerrada correctamente');
 }
 
@@ -1161,34 +1220,62 @@ function loadChatsForRoom(roomName) {
 function loadUserChats() {
     const currentUser = DB.getCurrentUser();
     if (!currentUser) return;
-    
+
+    // Intentar cargar desde DBClient (producción con BD)
+    if (typeof DBClient !== 'undefined' && DBClient.connected) {
+        DBClient.getUserChats()
+            .then(result => {
+                if (result.success && result.chats) {
+                    displayUserChats(result.chats);
+                } else {
+                    // Fallback a localStorage
+                    loadUserChatsLocal();
+                }
+            })
+            .catch(err => {
+                console.error('Error cargando chats:', err);
+                loadUserChatsLocal();
+            });
+    } else {
+        // Local
+        loadUserChatsLocal();
+    }
+}
+
+function loadUserChatsLocal() {
+    const currentUser = DB.getCurrentUser();
+    if (!currentUser) return;
+
     const userChats = DB.getUserChats(currentUser.id);
+    displayUserChats(userChats);
+}
+
+function displayUserChats(chats) {
     const container = document.getElementById('user-chats-list');
-    
     if (!container) return;
-    
-    if (userChats.length === 0) {
+
+    if (!chats || chats.length === 0) {
         container.innerHTML = '<div class="no-chats-message">No tienes chats aún. ¡Busca usuarios y escribeles!</div>';
         return;
     }
-    
+
     container.innerHTML = '';
-    userChats.forEach(chat => {
+    chats.forEach(chat => {
         const chatEl = document.createElement('div');
         chatEl.className = 'chat-item';
-        chatEl.setAttribute('data-chat', chat.userId);
+        chatEl.setAttribute('data-chat', chat.userId || chat.id);
         chatEl.setAttribute('data-user-chat', 'true');
         chatEl.innerHTML = `
             <div class="chat-avatar">${chat.avatar || '👤'}</div>
             <div class="chat-info">
-                <div class="chat-name">@${chat.username}</div>
+                <div class="chat-name">@${chat.name || chat.userId || chat.otro_usuario}</div>
                 <div class="chat-preview">${chat.lastMessage || 'Inicia una conversación'}</div>
             </div>
             <div class="chat-time">${chat.time || 'Reciente'}</div>
         `;
         container.appendChild(chatEl);
     });
-    
+
     container.querySelectorAll('.chat-item').forEach((item) => {
         item.addEventListener('click', () => {
             openUserChat(item);
@@ -1316,17 +1403,30 @@ function startChatWithUser(username, avatar) {
     const currentUser = DB.getCurrentUser();
     if (!currentUser) return;
 
-    // Crear o obtener chat con usuario real
-    if (typeof API !== 'undefined' && isProduction) {
-        // Primero crear el chat en la BD
-        API.createChat(currentUser.username, username)
+    // Usar DBClient si está disponible (producción con BD)
+    if (typeof DBClient !== 'undefined' && DBClient.connected) {
+        DBClient.createChat(username)
             .then(result => {
-                if (result.success || result.chatId) {
+                if (result.success) {
                     // Chat creado/obtenido, ahora abrirlo
                     openChatWithUser(username, avatar);
                 } else {
                     console.error('Error creando chat:', result.error);
-                    // Fallback local
+                    startChatWithUserLocal(null, username, avatar);
+                }
+            })
+            .catch(err => {
+                console.error('Error en DBClient:', err);
+                startChatWithUserLocal(null, username, avatar);
+            });
+    } else if (typeof API !== 'undefined' && isProduction) {
+        // Fallback a API antigua
+        API.createChat(currentUser.username, username)
+            .then(result => {
+                if (result.success || result.chatId) {
+                    openChatWithUser(username, avatar);
+                } else {
+                    console.error('Error creando chat:', result.error);
                     startChatWithUserLocal(null, username, avatar);
                 }
             })
@@ -1412,15 +1512,34 @@ function loadUserChatMessages(userId) {
     const currentUser = DB.getCurrentUser();
     if (!currentUser) return;
 
-    // Intentar cargar desde API en producción
-    if (typeof API !== 'undefined' && isProduction) {
-        // Primero obtener el chat ID
+    // Intentar cargar desde DBClient (producción con BD)
+    if (typeof DBClient !== 'undefined' && DBClient.connected) {
+        // Primero obtener o crear el chat
+        DBClient.createChat(userId)
+            .then(result => {
+                if (result.success && result.chatId) {
+                    const chatId = result.chatId;
+                    const chatOverlay = document.getElementById('chat-overlay');
+                    if (chatOverlay) {
+                        chatOverlay.setAttribute('data-chat-id', chatId);
+                    }
+                    loadChatMessagesFromDB(chatId);
+                } else {
+                    // Fallback local
+                    loadUserChatMessagesLocal(userId);
+                }
+            })
+            .catch(err => {
+                console.error('Error cargando chat:', err);
+                loadUserChatMessagesLocal(userId);
+            });
+    } else if (typeof API !== 'undefined' && isProduction) {
+        // Fallback a API antigua
         API.createChat(currentUser.username, userId)
             .then(result => {
                 if (result.chatId) {
                     loadChatMessagesFromAPI(result.chatId);
                 } else {
-                    // Fallback local
                     loadUserChatMessagesLocal(userId);
                 }
             })
@@ -1431,6 +1550,37 @@ function loadUserChatMessages(userId) {
     } else {
         loadUserChatMessagesLocal(userId);
     }
+}
+
+function loadChatMessagesFromDB(chatId) {
+    if (typeof DBClient === 'undefined') return;
+
+    DBClient.getChatMessages(chatId)
+        .then(result => {
+            if (result.success && result.mensajes) {
+                const container = document.getElementById('chat-overlay-messages');
+                if (!container) return;
+
+                container.innerHTML = '';
+                const currentUser = DB.getCurrentUser();
+
+                result.mensajes.forEach(msg => {
+                    const msgEl = document.createElement('div');
+                    msgEl.className = 'chat-message' + (msg.sent ? ' sent' : '');
+                    msgEl.innerHTML = `
+                        <div class="chat-message-avatar">${msg.sent ? (currentUser?.avatar || '🐱') : '👤'}</div>
+                        <div class="chat-message-content">
+                            <div class="chat-message-text">${msg.text}</div>
+                            <div class="chat-message-time">${msg.time}</div>
+                        </div>
+                    `;
+                    container.appendChild(msgEl);
+                });
+
+                container.scrollTop = container.scrollHeight;
+            }
+        })
+        .catch(err => console.error('Error cargando mensajes:', err));
 }
 
 function loadUserChatMessagesLocal(userId) {
@@ -1470,16 +1620,55 @@ function sendChatMessage() {
 
     const chatOverlay = document.getElementById('chat-overlay');
     const chatName = chatOverlay.querySelector('#chat-overlay-name').textContent.replace('@', '');
+    const currentChatId = chatOverlay.getAttribute('data-chat-id');
 
-    // Intentar enviar por API en producción
-    if (typeof API !== 'undefined' && isProduction) {
-        // Buscar o crear el chat
+    // Usar DBClient si está disponible (producción con BD)
+    if (typeof DBClient !== 'undefined' && DBClient.connected) {
+        // Si no tenemos chatId, crear o obtener el chat
+        if (!currentChatId) {
+            DBClient.createChat(chatName)
+                .then(result => {
+                    if (result.success) {
+                        const chatId = result.chatId;
+                        chatOverlay.setAttribute('data-chat-id', chatId);
+                        
+                        // Enviar mensaje
+                        return DBClient.sendMessage(chatId, text);
+                    }
+                    return null;
+                })
+                .then(msgResult => {
+                    if (msgResult && msgResult.success) {
+                        input.value = '';
+                        // Recargar mensajes
+                        const chatId = chatOverlay.getAttribute('data-chat-id');
+                        loadChatMessagesFromDB(chatId);
+                    }
+                })
+                .catch(err => {
+                    console.error('Error enviando mensaje:', err);
+                    sendChatMessageLocal(text, currentUser, chatName);
+                });
+        } else {
+            // Ya tenemos chatId, enviar mensaje directamente
+            DBClient.sendMessage(currentChatId, text)
+                .then(result => {
+                    if (result.success) {
+                        input.value = '';
+                        loadChatMessagesFromDB(currentChatId);
+                    }
+                })
+                .catch(err => {
+                    console.error('Error enviando mensaje:', err);
+                    sendChatMessageLocal(text, currentUser, chatName);
+                });
+        }
+    } else if (typeof API !== 'undefined' && isProduction) {
+        // Fallback a API antigua
         API.createChat(currentUser.username, chatName)
             .then(result => {
                 if (result.success || result.chatId) {
                     const chatId = result.chatId;
-                    
-                    // Enviar mensaje por API
                     API.sendMessage(chatId, currentUser.username, text)
                         .then(msgResult => {
                             if (msgResult.success) {
@@ -1488,14 +1677,11 @@ function sendChatMessage() {
                             }
                         })
                         .catch(err => console.error('Error enviando mensaje:', err));
-                    
-                    // Actualizar localmente
                     updateLocalChat(chatName, text, currentUser);
                 }
             })
             .catch(err => {
                 console.error('Error creando chat:', err);
-                // Fallback local
                 sendChatMessageLocal(text, currentUser, chatName);
             });
     } else {
