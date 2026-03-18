@@ -305,7 +305,7 @@ const DB = {
 };
 
 // Initialize app
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
     try {
         // Quitar pantalla de carga inmediatamente
         const loadingScreen = document.getElementById('loading-screen');
@@ -317,7 +317,16 @@ document.addEventListener('DOMContentLoaded', () => {
         const isProduction = window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1';
         console.log('🌐 Modo:', isProduction ? 'Producción (API)' : 'Desarrollo (localStorage)');
 
-        // Initialize default users and bots
+        // IMPORTANTE: Inicializar DBClient para conectar con la base de datos
+        if (typeof DBClient !== 'undefined') {
+            console.log('🔄 Inicializando DBClient...');
+            await DBClient.init();
+            console.log('✅ DBClient inicializado. Conectado:', DBClient.connected);
+        } else {
+            console.log('⚠️ DBClient no disponible');
+        }
+
+        // Initialize default users and bots (solo para fallback local)
         DB.initDefaultUsers();
         DB.initBots();
 
@@ -336,7 +345,7 @@ document.addEventListener('DOMContentLoaded', () => {
         } else {
             // No hay usuario logueado, mostrar auth
             showAuthScreen();
-            
+
             // Initialize comment events
             setTimeout(() => {
                 try { initCommentEvents(); } catch(e) { console.log('Comment events error:', e); }
@@ -850,10 +859,14 @@ function handleLogin() {
         return;
     }
 
-    // Usar DBClient para login (conecta a la BD en Render)
+    // Usar DBClient SIEMPRE para login (intenta BD, fallback a local)
     if (typeof DBClient !== 'undefined') {
+        console.log('🔑 Iniciando sesión con DBClient:', username);
+        
         DBClient.login(username, password)
             .then(result => {
+                console.log('Resultado login:', result);
+                
                 if (result.success) {
                     // Guardar inicio de sesión para tiempo en pantalla
                     localStorage.setItem('dopmax_session_start', Date.now().toString());
@@ -862,7 +875,7 @@ function handleLogin() {
                         initializeApp(result.user);
                     }, 200);
                 } else {
-                    errorEl.textContent = result.error || 'Error en el login';
+                    errorEl.textContent = result.error || 'Usuario o contraseña incorrectos';
                     errorEl.classList.remove('hidden');
                 }
             })
@@ -872,7 +885,7 @@ function handleLogin() {
                 errorEl.classList.remove('hidden');
             });
     } else {
-        // Fallback al método local
+        // Fallback al método local (solo si DBClient no existe)
         const user = DB.getUserByUsername(username);
         if (!user) {
             errorEl.textContent = 'Usuario no encontrado';
@@ -932,10 +945,14 @@ function handleRegister() {
         return;
     }
 
-    // Usar DBClient para registro (conecta a la BD en Render)
+    // Usar DBClient SIEMPRE para registro (intenta BD, fallback a local)
     if (typeof DBClient !== 'undefined') {
+        console.log('📝 Registrando usuario con DBClient:', username);
+        
         DBClient.register(username, password)
             .then(result => {
+                console.log('Resultado registro:', result);
+                
                 if (result.success) {
                     // Guardar inicio de sesión para tiempo en pantalla
                     localStorage.setItem('dopmax_session_start', Date.now().toString());
@@ -954,7 +971,7 @@ function handleRegister() {
                 errorEl.classList.remove('hidden');
             });
     } else {
-        // Fallback al método local
+        // Fallback al método local (solo si DBClient no existe)
         if (DB.getUserByUsername(username)) {
             errorEl.textContent = 'Este nombre de usuario ya está en uso';
             errorEl.classList.remove('hidden');

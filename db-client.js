@@ -44,14 +44,24 @@ const DBClient = {
         try {
             const controller = new AbortController();
             const timeoutId = setTimeout(() => controller.abort(), 5000);
-            
+
+            // Usar GET en lugar de HEAD para mejor compatibilidad
             const response = await fetch(`${DB_CONFIG.baseURL}/videos`, {
                 signal: controller.signal,
-                method: 'HEAD'
+                method: 'GET',
+                headers: { 'Accept': 'application/json' }
             });
-            
+
             clearTimeout(timeoutId);
-            return response.ok || response.status === 200 || response.status === 503;
+            
+            // Si responde (200, 201, 503, etc.), hay conexión
+            const connected = response.status !== 404 && response.status !== 502 && response.status !== 503;
+            
+            if (connected) {
+                console.log('✅ Conexión con el backend verificada');
+            }
+            
+            return connected;
         } catch (error) {
             console.log('❌ No hay conexión con el backend:', error.message);
             return false;
@@ -77,78 +87,82 @@ const DBClient = {
     // ============================================
 
     async register(username, password) {
-        if (this.connected) {
-            try {
-                const response = await fetch(`${DB_CONFIG.baseURL}/auth/register`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ 
-                        nombreusuario: username, 
-                        contrasena: password 
-                    })
-                });
+        // SIEMPRE intentar con la base de datos primero
+        try {
+            console.log('📝 Registrando usuario en BD:', username);
+            
+            const response = await fetch(`${DB_CONFIG.baseURL}/auth/register`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    nombreusuario: username,
+                    contrasena: password
+                })
+            });
 
-                const data = await response.json();
+            const data = await response.json();
+            console.log('Respuesta del registro:', data);
 
-                if (!response.ok) {
-                    throw new Error(data.error || 'Error en el registro');
-                }
-
-                this.currentUser = {
-                    id: data.user.nombreusuario,
-                    username: data.user.nombreusuario,
-                    avatar: data.user.avatar,
-                    room: data.user.sala,
-                    createdAt: data.user.created_at
-                };
-                
-                localStorage.setItem('dopmax_current_user', JSON.stringify(this.currentUser));
-                
-                return { success: true, user: this.currentUser };
-            } catch (error) {
-                console.error('Error en registro:', error);
-                return { success: false, error: error.message };
+            if (!response.ok) {
+                throw new Error(data.error || 'Error en el registro');
             }
-        } else {
-            // Fallback a localStorage
+
+            this.currentUser = {
+                id: data.user.nombreusuario,
+                username: data.user.nombreusuario,
+                avatar: data.user.avatar,
+                room: data.user.sala,
+                createdAt: data.user.created_at
+            };
+
+            localStorage.setItem('dopmax_current_user', JSON.stringify(this.currentUser));
+            console.log('✅ Usuario registrado y guardado en BD:', this.currentUser.username);
+
+            return { success: true, user: this.currentUser };
+        } catch (error) {
+            console.error('❌ Error en registro con BD:', error.message);
+            // Solo fallback a localStorage si falla la BD
+            console.log('⚠️ Usando fallback a localStorage');
             return this.registerLocal(username, password);
         }
     },
 
     async login(username, password) {
-        if (this.connected) {
-            try {
-                const response = await fetch(`${DB_CONFIG.baseURL}/auth/login`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ 
-                        nombreusuario: username, 
-                        contrasena: password 
-                    })
-                });
+        // SIEMPRE intentar con la base de datos primero
+        try {
+            console.log('🔑 Login en BD:', username);
+            
+            const response = await fetch(`${DB_CONFIG.baseURL}/auth/login`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    nombreusuario: username,
+                    contrasena: password
+                })
+            });
 
-                const data = await response.json();
+            const data = await response.json();
+            console.log('Respuesta del login:', data);
 
-                if (!response.ok) {
-                    throw new Error(data.error || 'Error en el login');
-                }
-
-                this.currentUser = {
-                    id: data.user.nombreusuario,
-                    username: data.user.nombreusuario,
-                    avatar: data.user.avatar,
-                    room: data.user.sala
-                };
-                
-                localStorage.setItem('dopmax_current_user', JSON.stringify(this.currentUser));
-                
-                return { success: true, user: this.currentUser };
-            } catch (error) {
-                console.error('Error en login:', error);
-                return { success: false, error: error.message };
+            if (!response.ok) {
+                throw new Error(data.error || 'Error en el login');
             }
-        } else {
-            // Fallback a localStorage
+
+            this.currentUser = {
+                id: data.user.nombreusuario,
+                username: data.user.nombreusuario,
+                avatar: data.user.avatar,
+                room: data.user.sala
+            };
+
+            localStorage.setItem('dopmax_current_user', JSON.stringify(this.currentUser));
+            console.log('✅ Login exitoso en BD:', this.currentUser.username);
+
+            return { success: true, user: this.currentUser };
+        } catch (error) {
+            console.error('❌ Error en login con BD:', error.message);
+            // Solo fallback a localStorage si falla la BD
+            console.log('⚠️ Usando fallback a localStorage');
             return this.loginLocal(username, password);
         }
     },
