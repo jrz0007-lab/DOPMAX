@@ -374,7 +374,7 @@ app.get('/api/chats/:usuario', async (req, res) => {
     }
 });
 
-// Crear nuevo chat
+// Crear nuevo chat (funciona bidireccionalmente)
 app.post('/api/chats', async (req, res) => {
     try {
         const { usuario1, usuario2 } = req.body;
@@ -384,23 +384,31 @@ app.post('/api/chats', async (req, res) => {
         }
 
         // Verificar que los usuarios existen
-        const user1 = await pool.query('SELECT * FROM usuarios WHERE nombreusuario = $1', [usuario1]);
-        const user2 = await pool.query('SELECT * FROM usuarios WHERE nombreusuario = $1', [usuario2]);
+        const user1 = await pool.query('SELECT * FROM usuarios WHERE LOWER(nombreusuario) = LOWER($1)', [usuario1]);
+        const user2 = await pool.query('SELECT * FROM usuarios WHERE LOWER(nombreusuario) = LOWER($1)', [usuario2]);
 
         if (user1.rows.length === 0 || user2.rows.length === 0) {
             return res.status(404).json({ error: 'Uno o ambos usuarios no existen' });
         }
 
-        // Crear o obtener chat existente
-        const result = await pool.query(
-            `INSERT INTO chats (usuario1, usuario2)
-             VALUES ($1, $2)
-             ON CONFLICT (usuario1, usuario2) DO UPDATE SET usuario1 = $1
-             RETURNING id`,
+        // Crear chat verificando en ambos sentidos (usuario1, usuario2) o (usuario2, usuario1)
+        let result = await pool.query(
+            `SELECT id FROM chats WHERE (usuario1 = $1 AND usuario2 = $2) OR (usuario1 = $2 AND usuario2 = $1)`,
             [usuario1, usuario2]
         );
 
-        res.json({ success: true, chatId: result.rows[0].id });
+        if (result.rows.length > 0) {
+            // Chat ya existe
+            return res.json({ success: true, chatId: result.rows[0].id, exists: true });
+        }
+
+        // Crear nuevo chat
+        result = await pool.query(
+            `INSERT INTO chats (usuario1, usuario2) VALUES ($1, $2) RETURNING id`,
+            [usuario1, usuario2]
+        );
+
+        res.json({ success: true, chatId: result.rows[0].id, exists: false });
     } catch (error) {
         console.error('Error creando chat:', error);
         res.status(500).json({ error: 'Error en el servidor' });
@@ -861,10 +869,61 @@ app.get('*', (req, res) => {
 // INICIAR SERVIDOR
 // ============================================
 
+// Inicializar comentarios por defecto en videos
+async function initVideoComments() {
+    if (!pool) return;
+    
+    try {
+        // Verificar si ya hay comentarios
+        const countResult = await pool.query('SELECT COUNT(*) FROM comentarios_video');
+        const count = parseInt(countResult.rows[0].count);
+        
+        if (count > 0) {
+            console.log('✅ Comentarios ya inicializados:', count);
+            return;
+        }
+
+        // Obtener primeros 3 videos
+        const videosResult = await pool.query('SELECT id FROM videos ORDER BY created_at LIMIT 3');
+        
+        if (videosResult.rows.length === 0) {
+            console.log('⚠️ No hay videos para inicializar comentarios');
+            return;
+        }
+
+        // Comentarios por defecto
+        const defaultComments = [
+            { usuario: 'admin', contenido: '¡Me encanta este video! 🔥' },
+            { usuario: 'admin', contenido: 'Esto es increíble 😍' },
+            { usuario: 'admin', contenido: '¿Alguien más viendo esto? 👀' },
+            { usuario: 'admin', contenido: '¡Brutal! 💯' },
+            { usuario: 'admin', contenido: 'Necesito más contenido así' }
+        ];
+
+        // Agregar comentarios a cada video
+        for (const video of videosResult.rows) {
+            const numComments = 2 + Math.floor(Math.random() * 2); // 2-3 comentarios por video
+            for (let i = 0; i < numComments && i < defaultComments.length; i++) {
+                await pool.query(
+                    'INSERT INTO comentarios_video (video_id, usuario, contenido) VALUES ($1, $2, $3)',
+                    [video.id, defaultComments[i].usuario, defaultComments[i].contenido]
+                );
+            }
+        }
+
+        console.log('✅ Comentarios inicializados en videos');
+    } catch (error) {
+        console.error('❌ Error inicializando comentarios:', error);
+    }
+}
+
 async function startServer() {
     try {
         // Crear tablas
         await createTables();
+        
+        // Inicializar comentarios en videos
+        await initVideoComments();
 
         // Iniciar servidor
         app.listen(PORT, () => {
