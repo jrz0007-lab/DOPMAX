@@ -23,15 +23,15 @@ app.use(express.json());
 app.use(express.static(__dirname));
 
 // Configuración de PostgreSQL
-const isProduction = process.env.NODE_ENV === 'production' && process.env.DATABASE_URL;
+const isProduction = process.env.NODE_ENV === 'production';
 
 let pool;
 if (process.env.DATABASE_URL) {
     pool = new Pool({
         connectionString: process.env.DATABASE_URL,
-        ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
+        ssl: isProduction ? { rejectUnauthorized: false } : false
     });
-    console.log('📊 Conectado a PostgreSQL:', process.env.NODE_ENV === 'production' ? '(producción)' : '(local)');
+    console.log('📊 Conectado a PostgreSQL en Render (dopmaxx):', isProduction ? '(producción)' : '(local)');
 } else {
     console.log('⚠️  DATABASE_URL no configurada - la API no estará disponible');
 }

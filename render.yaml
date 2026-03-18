@@ -1,7 +1,7 @@
 services:
   # Servicio Web único para backend + frontend
   - type: web
-    name: dopmax-buena
+    name: dopmax-app
     env: node
     region: frankfurt
     plan: free
@@ -13,13 +13,4 @@ services:
       - key: PORT
         value: 3000
       - key: DATABASE_URL
-        fromDatabase:
-          name: dopmaxx
-          property: connectionString
-
-databases:
-  - name: dopmaxx
-    databaseName: dopmaxx
-    user: dopmaxx_user
-    plan: free
-    region: frankfurt
+        value: postgresql://dopmaxx_user:AxAOCstUlJECm8KZePvgUjRcmmbA6Alk@dpg-d6q0ekpj16oc73boo1m0-a/dopmaxx
