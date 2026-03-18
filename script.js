@@ -1204,6 +1204,12 @@ document.getElementById('chat-input').addEventListener('keypress', (e) => {
     if (e.key === 'Enter') sendChatMessage();
 });
 
+// Mostrar mensaje de error
+function showError(message) {
+    console.error('❌ Error:', message);
+    alert(message);
+}
+
 function loadChatsForRoom(roomName) {
     const chats = DB.getChatsForRoom(roomName);
     const container = document.getElementById('messages-content');
@@ -1529,51 +1535,38 @@ function loadUserChatMessages(userId) {
     const currentUser = DB.getCurrentUser();
     if (!currentUser) return;
 
-    // Intentar cargar desde DBClient (producción con BD)
-    if (typeof DBClient !== 'undefined' && DBClient.connected) {
-        // Primero obtener o crear el chat
-        DBClient.createChat(userId)
-            .then(result => {
-                if (result.success && result.chatId) {
-                    const chatId = result.chatId;
-                    const chatOverlay = document.getElementById('chat-overlay');
-                    if (chatOverlay) {
-                        chatOverlay.setAttribute('data-chat-id', chatId);
-                    }
-                    loadChatMessagesFromDB(chatId);
-                } else {
-                    // Fallback local
-                    loadUserChatMessagesLocal(userId);
+    console.log('📨 Cargando chat con:', userId);
+
+    // SIEMPRE usar DBClient para cargar mensajes
+    DBClient.createChat(userId)
+        .then(result => {
+            console.log('Resultado createChat:', result);
+            
+            if (result.success && result.chatId) {
+                const chatId = result.chatId;
+                const chatOverlay = document.getElementById('chat-overlay');
+                if (chatOverlay) {
+                    chatOverlay.setAttribute('data-chat-id', chatId);
                 }
-            })
-            .catch(err => {
-                console.error('Error cargando chat:', err);
-                loadUserChatMessagesLocal(userId);
-            });
-    } else if (typeof API !== 'undefined' && isProduction) {
-        // Fallback a API antigua
-        API.createChat(currentUser.username, userId)
-            .then(result => {
-                if (result.chatId) {
-                    loadChatMessagesFromAPI(result.chatId);
-                } else {
-                    loadUserChatMessagesLocal(userId);
-                }
-            })
-            .catch(err => {
-                console.error('Error cargando chat:', err);
-                loadUserChatMessagesLocal(userId);
-            });
-    } else {
-        loadUserChatMessagesLocal(userId);
-    }
+                loadChatMessagesFromDB(chatId);
+            } else {
+                console.error('Error creando chat:', result.error);
+                showError('No se pudo cargar el chat');
+            }
+        })
+        .catch(err => {
+            console.error('Error cargando chat:', err);
+            showError('Error de conexión');
+        });
 }
 
 function loadChatMessagesFromDB(chatId) {
-    if (typeof DBClient === 'undefined') return;
-
+    console.log('📥 Cargando mensajes del chat:', chatId);
+    
     DBClient.getChatMessages(chatId)
         .then(result => {
+            console.log('Mensajes recibidos:', result);
+            
             if (result.success && result.mensajes) {
                 const container = document.getElementById('chat-overlay-messages');
                 if (!container) return;
@@ -1597,7 +1590,10 @@ function loadChatMessagesFromDB(chatId) {
                 container.scrollTop = container.scrollHeight;
             }
         })
-        .catch(err => console.error('Error cargando mensajes:', err));
+        .catch(err => {
+            console.error('Error cargando mensajes:', err);
+            showError('No se pudieron cargar los mensajes');
+        });
 }
 
 function loadUserChatMessagesLocal(userId) {
@@ -1630,80 +1626,66 @@ function loadUserChatMessagesLocal(userId) {
 function sendChatMessage() {
     const input = document.getElementById('chat-input');
     const text = input.value.trim();
+    
     if (!text) return;
 
     const currentUser = DB.getCurrentUser();
-    if (!currentUser) return;
+    if (!currentUser) {
+        showError('Debes iniciar sesión');
+        return;
+    }
 
     const chatOverlay = document.getElementById('chat-overlay');
     const chatName = chatOverlay.querySelector('#chat-overlay-name').textContent.replace('@', '');
-    const currentChatId = chatOverlay.getAttribute('data-chat-id');
+    let currentChatId = chatOverlay.getAttribute('data-chat-id');
 
-    // Usar DBClient si está disponible (producción con BD)
-    if (typeof DBClient !== 'undefined' && DBClient.connected) {
-        // Si no tenemos chatId, crear o obtener el chat
-        if (!currentChatId) {
-            DBClient.createChat(chatName)
-                .then(result => {
-                    if (result.success) {
-                        const chatId = result.chatId;
-                        chatOverlay.setAttribute('data-chat-id', chatId);
-                        
-                        // Enviar mensaje
-                        return DBClient.sendMessage(chatId, text);
-                    }
-                    return null;
-                })
-                .then(msgResult => {
-                    if (msgResult && msgResult.success) {
-                        input.value = '';
-                        // Recargar mensajes
-                        const chatId = chatOverlay.getAttribute('data-chat-id');
-                        loadChatMessagesFromDB(chatId);
-                    }
-                })
-                .catch(err => {
-                    console.error('Error enviando mensaje:', err);
-                    sendChatMessageLocal(text, currentUser, chatName);
-                });
-        } else {
-            // Ya tenemos chatId, enviar mensaje directamente
-            DBClient.sendMessage(currentChatId, text)
-                .then(result => {
-                    if (result.success) {
-                        input.value = '';
-                        loadChatMessagesFromDB(currentChatId);
-                    }
-                })
-                .catch(err => {
-                    console.error('Error enviando mensaje:', err);
-                    sendChatMessageLocal(text, currentUser, chatName);
-                });
-        }
-    } else if (typeof API !== 'undefined' && isProduction) {
-        // Fallback a API antigua
-        API.createChat(currentUser.username, chatName)
+    console.log('💬 Enviando mensaje:', text, 'al chat:', currentChatId || 'nuevo');
+
+    // Función para enviar mensaje una vez tengamos chatId
+    const sendMessageWithChatId = (chatId) => {
+        console.log('Enviando mensaje al chat ID:', chatId);
+        
+        DBClient.sendMessage(chatId, text)
             .then(result => {
-                if (result.success || result.chatId) {
+                console.log('Resultado envío:', result);
+                
+                if (result.success) {
+                    input.value = '';
+                    // Recargar mensajes para mostrar el nuevo
+                    loadChatMessagesFromDB(chatId);
+                } else {
+                    showError(result.error || 'No se pudo enviar el mensaje');
+                }
+            })
+            .catch(err => {
+                console.error('Error enviando mensaje:', err);
+                showError('Error de conexión al enviar');
+            });
+    };
+
+    // Si no tenemos chatId, crear el chat primero
+    if (!currentChatId) {
+        console.log('Creando nuevo chat con:', chatName);
+        
+        DBClient.createChat(chatName)
+            .then(result => {
+                console.log('Chat creado:', result);
+                
+                if (result.success && result.chatId) {
                     const chatId = result.chatId;
-                    API.sendMessage(chatId, currentUser.username, text)
-                        .then(msgResult => {
-                            if (msgResult.success) {
-                                input.value = '';
-                                loadChatMessagesFromAPI(chatId);
-                            }
-                        })
-                        .catch(err => console.error('Error enviando mensaje:', err));
-                    updateLocalChat(chatName, text, currentUser);
+                    chatOverlay.setAttribute('data-chat-id', chatId);
+                    sendMessageWithChatId(chatId);
+                } else {
+                    showError('No se pudo crear el chat: ' + (result.error || 'Error desconocido'));
                 }
             })
             .catch(err => {
                 console.error('Error creando chat:', err);
-                sendChatMessageLocal(text, currentUser, chatName);
+                showError('Error de conexión al crear chat');
             });
     } else {
-        // Local
-        sendChatMessageLocal(text, currentUser, chatName);
+        // Ya tenemos chatId, enviar directamente
+        sendMessageWithChatId(currentChatId);
     }
 }
 
@@ -2256,40 +2238,37 @@ function formatTimestamp(timestamp) {
 function sendVideoComment() {
     if (!currentVideoId) return;
 
-    const input = document.getElementById('comment-input');
+    const input = document.getElementById("comment-input");
     const text = input.value.trim();
     if (!text) return;
 
     const currentUser = DB.getCurrentUser();
     if (!currentUser) {
-        alert('Debes iniciar sesión para comentar');
+        alert("Debes iniciar sesión para comentar");
         return;
     }
 
-    // Intentar usar la API primero (producción)
-    if (typeof API !== 'undefined' && isProduction) {
-        API.addVideoComment(currentVideoId, currentUser.username, text)
-            .then(result => {
-                if (result.success) {
-                    input.value = '';
-                    loadVideoComments(currentVideoId);
-                } else {
-                    console.error('Error al comentar:', result.error);
-                    // Fallback a localStorage
-                    saveCommentLocal(currentVideoId, currentUser, text, input);
-                }
-            })
-            .catch(err => {
-                console.error('Error en API:', err);
-                saveCommentLocal(currentVideoId, currentUser, text, input);
-            });
-    } else {
-        // Usar localStorage (desarrollo)
-        saveCommentLocal(currentVideoId, currentUser, text, input);
-    }
+    console.log("💬 Enviando comentario:", text);
+
+    // SIEMPRE usar DBClient para enviar comentarios
+    DBClient.addVideoComment(currentVideoId, text)
+        .then(result => {
+            console.log("Resultado comentario:", result);
+            
+            if (result.success) {
+                input.value = "";
+                loadVideoComments(currentVideoId);
+            } else {
+                alert(result.error || "No se pudo enviar el comentario");
+            }
+        })
+        .catch(err => {
+            console.error("Error enviando comentario:", err);
+            alert("Error de conexión al enviar comentario");
+        });
 }
 
-function saveCommentLocal(videoId, currentUser, text, input) {
+function saveCommentLocal/g(videoId, currentUser, text, input) {
     const now = new Date();
     const time = now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
 
