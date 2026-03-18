@@ -1815,7 +1815,15 @@ let dragVelocityX = 0, dragVelocityY = 0;
 
 let lastVideo = null;
 
+// Lista de videos - SOPORTA URLs locales y externas (Cloudinary, YouTube, etc.)
+// Para usar Cloudinary: sube tus videos a cloudinary.com y pega las URLs aquí
 const videoList = [
+    // Ejemplos de URLs externas (reemplaza con las tuyas):
+    // Cloudinary: 'https://res.cloudinary.com/TU_CLOUD/video/upload/tu_video.mp4'
+    // YouTube: 'https://www.youtube.com/embed/VIDEO_ID'
+    // Google Drive: 'https://drive.google.com/uc?export=view&id=FILE_ID'
+    
+    // Videos locales (si los tienes en la carpeta videos/):
     'videos/12313131.mp4',
     'videos/13º112.mp4',
     'videos/151511616.mp4',
@@ -1834,6 +1842,15 @@ const videoList = [
     'videos/Download (7).mp4',
     'videos/Download.mp4'
 ];
+
+// URLs de ejemplo para Cloudinary (REEMPLAZA con tus URLs reales después de subir los videos)
+const cloudinaryExamples = [
+    'https://res.cloudinary.com/demo/video/upload/v1339632923/sample.mp4', // Video de ejemplo de Cloudinary
+    'https://res.cloudinary.com/demo/video/upload/v1468318720/smithsonian.mp4'
+];
+
+// Si quieres usar videos de Cloudinary, descomenta la siguiente línea y reemplaza con tus URLs:
+// const videoList = cloudinaryExamples;
 
 function getRandomVideo(currentVideo) {
     if (videoList.length <= 1) return videoList[0];

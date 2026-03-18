@@ -441,6 +441,35 @@ const DBClient = {
         return { success: false, error: 'No hay conexión' };
     },
 
+    async registerVideo(videoUrl, titulo = '') {
+        if (this.connected && this.currentUser) {
+            try {
+                const response = await fetch(`${DB_CONFIG.baseURL}/videos/register`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        videoUrl: videoUrl,
+                        usuario: this.currentUser.username,
+                        titulo: titulo
+                    })
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.error || 'Error registrando video');
+                }
+
+                console.log('✅ Video registrado:', data.video);
+                return { success: true, video: data.video };
+            } catch (error) {
+                console.error('Error registrando video:', error);
+                return { success: false, error: error.message };
+            }
+        }
+        return { success: false, error: 'No hay conexión' };
+    },
+
     async getVideoComments(videoId) {
         if (this.connected) {
             try {

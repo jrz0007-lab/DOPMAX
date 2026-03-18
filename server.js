@@ -456,7 +456,7 @@ app.post('/api/chats/:chatId/mensajes', async (req, res) => {
 // ENDPOINTS DE VIDEOS
 // ============================================
 
-// Subir video
+// Subir video (archivo local)
 app.post('/api/videos/upload', upload.single('video'), async (req, res) => {
     try {
         const { usuario, titulo } = req.body;
@@ -479,6 +479,40 @@ app.post('/api/videos/upload', upload.single('video'), async (req, res) => {
         res.status(201).json({ success: true, video: result.rows[0] });
     } catch (error) {
         console.error('Error subiendo video:', error);
+        res.status(500).json({ error: 'Error en el servidor' });
+    }
+});
+
+// Registrar video con URL externa (Cloudinary, YouTube, etc.)
+app.post('/api/videos/register', async (req, res) => {
+    try {
+        const { usuario, titulo, videoUrl } = req.body;
+
+        if (!usuario) {
+            return res.status(400).json({ error: 'Usuario requerido' });
+        }
+
+        if (!videoUrl) {
+            return res.status(400).json({ error: 'URL del video requerida' });
+        }
+
+        // Validar que sea una URL válida
+        try {
+            new URL(videoUrl);
+        } catch (e) {
+            return res.status(400).json({ error: 'URL inválida' });
+        }
+
+        const result = await pool.query(
+            `INSERT INTO videos (archivo, usuario, titulo)
+             VALUES ($1, $2, $3)
+             RETURNING id, archivo, usuario, titulo, created_at`,
+            [videoUrl, usuario, titulo || 'Video sin título']
+        );
+
+        res.status(201).json({ success: true, video: result.rows[0] });
+    } catch (error) {
+        console.error('Error registrando video:', error);
         res.status(500).json({ error: 'Error en el servidor' });
     }
 });

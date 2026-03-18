@@ -201,6 +201,27 @@ const API = {
         }
     },
 
+    registerVideo: async (videoUrl, usuario, titulo = '') => {
+        try {
+            const response = await fetch(`${API_CONFIG.baseURL}/videos/register`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ videoUrl, usuario, titulo })
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.error || 'Error registrando video');
+            }
+
+            return { success: true, video: data.video };
+        } catch (error) {
+            console.error('Error registrando video:', error);
+            return { success: false, error: error.message };
+        }
+    },
+
     getVideos: async () => {
         try {
             const response = await fetch(`${API_CONFIG.baseURL}/videos`);
