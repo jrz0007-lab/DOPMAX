@@ -305,7 +305,7 @@ const DB = {
 };
 
 // Initialize app
-document.addEventListener('DOMContentLoaded', async () => {
+document.addEventListener('DOMContentLoaded', () => {
     try {
         // Quitar pantalla de carga inmediatamente
         const loadingScreen = document.getElementById('loading-screen');
@@ -317,11 +317,14 @@ document.addEventListener('DOMContentLoaded', async () => {
         const isProduction = window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1';
         console.log('🌐 Modo:', isProduction ? 'Producción (API)' : 'Desarrollo (localStorage)');
 
-        // IMPORTANTE: Inicializar DBClient para conectar con la base de datos
+        // IMPORTANTE: Inicializar DBClient para conectar con la base de datos (NO BLOQUEAR)
         if (typeof DBClient !== 'undefined') {
             console.log('🔄 Inicializando DBClient...');
-            await DBClient.init();
-            console.log('✅ DBClient inicializado. Conectado:', DBClient.connected);
+            DBClient.init().then(() => {
+                console.log('✅ DBClient inicializado. Conectado:', DBClient.connected);
+            }).catch(err => {
+                console.log('⚠️ DBClient init error (usando fallback):', err.message);
+            });
         } else {
             console.log('⚠️ DBClient no disponible');
         }
