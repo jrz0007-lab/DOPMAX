@@ -313,8 +313,7 @@ document.addEventListener('DOMContentLoaded', () => {
             loadingScreen.style.display = 'none';
         }
 
-        // Detectar si estamos en producción (Render)
-        const isProduction = window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1';
+        // Detectar si estamos en producción (Render) - usar variable global
         console.log('🌐 Modo:', isProduction ? 'Producción (API)' : 'Desarrollo (localStorage)');
 
         // IMPORTANTE: Inicializar DBClient para conectar con la base de datos (NO BLOQUEAR)
@@ -2278,7 +2277,7 @@ function sendVideoComment() {
         });
 }
 
-function saveCommentLocal/g(videoId, currentUser, text, input) {
+function saveCommentLocal(videoId, currentUser, text, input) {
     const now = new Date();
     const time = now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
 

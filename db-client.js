@@ -11,8 +11,10 @@ const DB_CONFIG = {
     useLocalStorage: false // Se detectará automáticamente
 };
 
-// Detectar si estamos en producción (Render)
-const isProduction = window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1';
+// Detectar si estamos en producción (Render) - usar window.isProduction si existe
+const isProduction = typeof window.isProduction !== 'undefined' 
+    ? window.isProduction 
+    : (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1');
 
 // ============================================
 // CLIENTE DE BASE DE DATOS
