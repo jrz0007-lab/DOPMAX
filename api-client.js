@@ -9,10 +9,8 @@ const API_CONFIG = {
     timeout: 10000
 };
 
-// Detectar si estamos en producción (Render) - usar window.isProduction si existe
-const isProduction = typeof window.isProduction !== 'undefined' 
-    ? window.isProduction 
-    : (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1');
+// Detectar si estamos en producción (Render) - usar variable global
+// isProduction ya está definido en db-client.js
 
 // Cliente API
 const API = {

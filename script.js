@@ -552,36 +552,6 @@ async function setupProfileSettings() {
         console.log('Profile settings error:', e);
     }
 }
-                if (currentUser.username.endsWith('_admin')) {
-                    modalEmpresa.classList.remove('hidden');
-                } else {
-                    alert('Esta función solo está disponible para cuentas de empresa (_admin)');
-                }
-            });
-            document.getElementById('close-empresa')?.addEventListener('click', () => {
-                modalEmpresa.classList.add('hidden');
-            });
-            document.getElementById('activar-empresa')?.addEventListener('click', () => {
-                alert('Cuenta de empresa activada. Ahora tienes acceso a estadísticas avanzadas.');
-                modalEmpresa.classList.add('hidden');
-            });
-        }
-
-        // Cerrar modales al hacer click fuera
-        [modalFotoPerfil, modalTiempo, modalBloqueadas, modalPrivacidad, modalPreferencias, modalEmpresa].forEach(modal => {
-            if (modal) {
-                modal.addEventListener('click', (e) => {
-                    if (e.target === modal) {
-                        modal.classList.add('hidden');
-                    }
-                });
-            }
-        });
-
-    } catch(e) {
-        console.log('Profile settings error:', e);
-    }
-}
 
 function isValidImageUrl(url) {
     return url.startsWith('http://') || url.startsWith('https://');
