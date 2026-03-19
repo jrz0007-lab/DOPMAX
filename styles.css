@@ -586,7 +586,7 @@ button, .tab, .dvd-video, .chat-item, .notification-item, .settings-item, .creat
 
 .comment-actions {
     display: flex;
-    gap: 8px;
+    gap: 12px;
     margin-top: 8px;
     align-items: center;
 }
@@ -595,37 +595,49 @@ button, .tab, .dvd-video, .chat-item, .notification-item, .settings-item, .creat
     display: inline-flex;
     align-items: center;
     gap: 4px;
-    padding: 4px 8px;
+    padding: 0;
     border: none;
-    background: #f0f0f0;
-    border-radius: 4px;
-    font-size: 12px;
+    background: transparent;
+    border-radius: 0;
+    font-size: 13px;
     cursor: pointer;
     transition: all 0.2s;
-    color: #666;
+    color: #606060;
 }
 
 .comment-action-btn:hover {
-    background: #e0e0e0;
+    background: transparent;
+}
+
+.comment-action-btn.like-btn {
+    color: #606060;
 }
 
 .comment-action-btn.like-btn:hover {
-    background: #e3f2fd;
-    color: #1976d2;
+    color: #065fd4;
+}
+
+.comment-action-btn.dislike-btn {
+    color: #606060;
 }
 
 .comment-action-btn.dislike-btn:hover {
-    background: #ffebee;
-    color: #d32f2f;
+    color: #065fd4;
+}
+
+.comment-action-btn.report-btn {
+    color: #606060;
+    font-size: 12px;
 }
 
 .comment-action-btn.report-btn:hover {
-    background: #fff3e0;
-    color: #f57c00;
+    color: #065fd4;
 }
 
 .comment-action-btn .count {
-    font-weight: 600;
+    font-weight: 500;
+    font-size: 13px;
+    margin-left: 2px;
 }
 
 .no-comments {
