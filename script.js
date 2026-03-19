@@ -1305,6 +1305,8 @@ if (backToInbox) backToInbox.addEventListener('click', () => {
     if (chatOverlay) {
         chatOverlay.classList.remove('active');
         chatOverlay.classList.add('hidden');
+        // DETENER polling cuando se cierra el chat
+        stopChatPolling();
     }
 });
 
@@ -1629,16 +1631,44 @@ function openChatWithUser(username, avatar) {
     loadUserChatMessages(username);
 }
 
+// Variables para polling de mensajes en tiempo real
+let chatPollingInterval = null;
+let currentChatIdPolling = null;
+
+// Iniciar polling para mensajes nuevos (cada 3 segundos)
+function startChatPolling(chatId) {
+    stopChatPolling(); // Detener polling anterior
+    currentChatIdPolling = chatId;
+    console.log('🔄 Iniciando polling para chat:', chatId);
+    
+    chatPollingInterval = setInterval(() => {
+        const chatOverlay = document.getElementById('chat-overlay');
+        if (currentChatIdPolling && chatOverlay?.classList?.contains('active')) {
+            loadChatMessagesFromDB(currentChatIdPolling, false); // false = no scroll
+        }
+    }, 3000);
+}
+
+// Detener polling
+function stopChatPolling() {
+    if (chatPollingInterval) {
+        clearInterval(chatPollingInterval);
+        chatPollingInterval = null;
+        console.log('⏹️ Deteniendo polling de chat');
+    }
+    currentChatIdPolling = null;
+}
+
 function openUserChat(chatItem) {
     const userId = chatItem.getAttribute('data-chat');
     const username = chatItem.querySelector('.chat-name').textContent.replace('@', '');
     const avatar = chatItem.querySelector('.chat-avatar').textContent;
-    
+
     document.getElementById('chat-overlay-avatar').textContent = avatar;
     document.getElementById('chat-overlay-name').textContent = '@' + username;
     document.getElementById('chat-overlay').classList.remove('hidden');
     document.getElementById('chat-overlay').classList.add('active');
-    
+
     // Cargar mensajes del chat con usuario
     loadUserChatMessages(userId);
 }
@@ -1653,7 +1683,7 @@ function loadUserChatMessages(userId) {
     DBClient.createChat(userId)
         .then(result => {
             console.log('Resultado createChat:', result);
-            
+
             if (result.success && result.chatId) {
                 const chatId = result.chatId;
                 const chatOverlay = document.getElementById('chat-overlay');
@@ -1661,6 +1691,9 @@ function loadUserChatMessages(userId) {
                     chatOverlay.setAttribute('data-chat-id', chatId);
                 }
                 loadChatMessagesFromDB(chatId);
+                
+                // INICIAR POLLING para mensajes nuevos en tiempo real
+                startChatPolling(chatId);
             } else {
                 console.error('Error creando chat:', result.error);
                 showError('No se pudo cargar el chat');
@@ -1672,16 +1705,20 @@ function loadUserChatMessages(userId) {
         });
 }
 
-function loadChatMessagesFromDB(chatId) {
+function loadChatMessagesFromDB(chatId, scrollToBottom = true) {
     console.log('📥 Cargando mensajes del chat:', chatId);
-    
+
     DBClient.getChatMessages(chatId)
         .then(result => {
             console.log('Mensajes recibidos:', result);
-            
+
             if (result.success && result.mensajes) {
                 const container = document.getElementById('chat-overlay-messages');
                 if (!container) return;
+
+                // Guardar posición actual del scroll
+                const previousScrollHeight = container.scrollHeight;
+                const previousScrollTop = container.scrollTop;
 
                 container.innerHTML = '';
                 const currentUser = DB.getCurrentUser();
@@ -1699,7 +1736,18 @@ function loadChatMessagesFromDB(chatId) {
                     container.appendChild(msgEl);
                 });
 
-                container.scrollTop = container.scrollHeight;
+                // Scroll al final solo si es la primera carga o si hay mensajes nuevos
+                if (scrollToBottom) {
+                    container.scrollTop = container.scrollHeight;
+                } else {
+                    // Mantener posición si hay mensajes nuevos
+                    const newScrollHeight = container.scrollHeight;
+                    if (newScrollHeight > previousScrollHeight) {
+                        container.scrollTop = newScrollHeight;
+                    } else {
+                        container.scrollTop = previousScrollTop;
+                    }
+                }
             }
         })
         .catch(err => {
