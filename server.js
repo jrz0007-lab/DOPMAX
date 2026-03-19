@@ -173,25 +173,41 @@ async function createTables() {
             )
         `);
 
-        // Tabla de comentarios de videos
+        // Tabla de comentarios de videos (video_id es VARCHAR para URLs de Cloudinary)
         await pool.query(`
             CREATE TABLE IF NOT EXISTS comentarios_video (
                 id SERIAL PRIMARY KEY,
-                video_id INTEGER NOT NULL REFERENCES videos(id) ON DELETE CASCADE,
+                video_id VARCHAR(100) NOT NULL,
                 usuario VARCHAR(50) NOT NULL REFERENCES usuarios(nombreusuario) ON DELETE CASCADE,
                 contenido TEXT NOT NULL,
+                likes INTEGER DEFAULT 0,
+                dislikes INTEGER DEFAULT 0,
+                reports INTEGER DEFAULT 0,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
         `);
 
-        // Tabla de likes en videos
+        // Tabla de likes/dislikes en comentarios
         await pool.query(`
-            CREATE TABLE IF NOT EXISTS likes_video (
+            CREATE TABLE IF NOT EXISTS comentarios_reacciones (
                 id SERIAL PRIMARY KEY,
-                video_id INTEGER NOT NULL REFERENCES videos(id) ON DELETE CASCADE,
+                comentario_id INTEGER NOT NULL REFERENCES comentarios_video(id) ON DELETE CASCADE,
                 usuario VARCHAR(50) NOT NULL REFERENCES usuarios(nombreusuario) ON DELETE CASCADE,
+                tipo VARCHAR(10) NOT NULL CHECK (tipo IN ('like', 'dislike')),
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                UNIQUE(video_id, usuario)
+                UNIQUE(comentario_id, usuario, tipo)
+            )
+        `);
+
+        // Tabla de reports de comentarios
+        await pool.query(`
+            CREATE TABLE IF NOT EXISTS comentarios_reports (
+                id SERIAL PRIMARY KEY,
+                comentario_id INTEGER NOT NULL REFERENCES comentarios_video(id) ON DELETE CASCADE,
+                usuario VARCHAR(50) NOT NULL REFERENCES usuarios(nombreusuario) ON DELETE CASCADE,
+                razon TEXT,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                UNIQUE(comentario_id, usuario)
             )
         `);
 
@@ -596,13 +612,13 @@ app.get('/api/videos', async (req, res) => {
     }
 });
 
-// Obtener comentarios de un video
+// Obtener comentarios de un video (con likes, dislikes y reports)
 app.get('/api/videos/:videoId/comentarios', async (req, res) => {
     try {
         const { videoId } = req.params;
 
         const result = await pool.query(
-            `SELECT cv.id, cv.contenido, cv.usuario, cv.created_at, u.avatar
+            `SELECT cv.id, cv.contenido, cv.usuario, cv.created_at, cv.likes, cv.dislikes, cv.reports, u.avatar
              FROM comentarios_video cv
              JOIN usuarios u ON u.nombreusuario = cv.usuario
              WHERE cv.video_id = $1
@@ -628,15 +644,107 @@ app.post('/api/videos/:videoId/comentarios', async (req, res) => {
         }
 
         const result = await pool.query(
-            `INSERT INTO comentarios_video (video_id, usuario, contenido)
-             VALUES ($1, $2, $3)
-             RETURNING id, contenido, usuario, created_at`,
+            `INSERT INTO comentarios_video (video_id, usuario, contenido, likes, dislikes, reports)
+             VALUES ($1, $2, $3, 0, 0, 0)
+             RETURNING id, contenido, usuario, created_at, likes, dislikes, reports`,
             [videoId, usuario, contenido]
         );
 
         res.status(201).json({ success: true, comentario: result.rows[0] });
     } catch (error) {
         console.error('Error agregando comentario:', error);
+        res.status(500).json({ error: 'Error en el servidor' });
+    }
+});
+
+// Dar like/dislike a comentario
+app.post('/api/comentarios/:comentarioId/reaccion', async (req, res) => {
+    try {
+        const { comentarioId } = req.params;
+        const { usuario, tipo } = req.body; // tipo: 'like' o 'dislike'
+
+        if (!usuario || !tipo || !['like', 'dislike'].includes(tipo)) {
+            return res.status(400).json({ error: 'Usuario y tipo (like/dislike) requeridos' });
+        }
+
+        // Verificar si ya tiene reacción
+        const existing = await pool.query(
+            'SELECT * FROM comentarios_reacciones WHERE comentario_id = $1 AND usuario = $2 AND tipo = $3',
+            [comentarioId, usuario, tipo]
+        );
+
+        if (existing.rows.length > 0) {
+            // Quitar reacción
+            await pool.query(
+                'DELETE FROM comentarios_reacciones WHERE comentario_id = $1 AND usuario = $2 AND tipo = $3',
+                [comentarioId, usuario, tipo]
+            );
+            
+            // Actualizar contador
+            const columna = tipo === 'like' ? 'likes' : 'dislikes';
+            await pool.query(
+                `UPDATE comentarios_video SET ${columna} = GREATEST(${columna} - 1, 0) WHERE id = $1`,
+                [comentarioId]
+            );
+            
+            res.json({ success: true, accion: 'quitada' });
+        } else {
+            // Añadir reacción
+            await pool.query(
+                'INSERT INTO comentarios_reacciones (comentario_id, usuario, tipo) VALUES ($1, $2, $3)',
+                [comentarioId, usuario, tipo]
+            );
+            
+            // Actualizar contador
+            const columna = tipo === 'like' ? 'likes' : 'dislikes';
+            await pool.query(
+                `UPDATE comentarios_video SET ${columna} = ${columna} + 1 WHERE id = $1`,
+                [comentarioId]
+            );
+            
+            res.json({ success: true, accion: 'agregada' });
+        }
+    } catch (error) {
+        console.error('Error en reacción:', error);
+        res.status(500).json({ error: 'Error en el servidor' });
+    }
+});
+
+// Reportar comentario
+app.post('/api/comentarios/:comentarioId/reportar', async (req, res) => {
+    try {
+        const { comentarioId } = req.params;
+        const { usuario, razon } = req.body;
+
+        if (!usuario) {
+            return res.status(400).json({ error: 'Usuario requerido' });
+        }
+
+        // Verificar si ya reportó
+        const existing = await pool.query(
+            'SELECT * FROM comentarios_reports WHERE comentario_id = $1 AND usuario = $2',
+            [comentarioId, usuario]
+        );
+
+        if (existing.rows.length > 0) {
+            return res.json({ success: false, error: 'Ya has reportado este comentario' });
+        }
+
+        // Añadir report
+        await pool.query(
+            'INSERT INTO comentarios_reports (comentario_id, usuario, razon) VALUES ($1, $2, $3)',
+            [comentarioId, usuario, razon || '']
+        );
+        
+        // Actualizar contador de reports
+        await pool.query(
+            'UPDATE comentarios_video SET reports = reports + 1 WHERE id = $1',
+            [comentarioId]
+        );
+        
+        res.json({ success: true });
+    } catch (error) {
+        console.error('Error reportando comentario:', error);
         res.status(500).json({ error: 'Error en el servidor' });
     }
 });

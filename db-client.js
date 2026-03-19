@@ -497,9 +497,9 @@ const DBClient = {
                 const response = await fetch(`${DB_CONFIG.baseURL}/videos/${videoId}/comentarios`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ 
-                        usuario: this.currentUser.username, 
-                        contenido: content 
+                    body: JSON.stringify({
+                        usuario: this.currentUser.username,
+                        contenido: content
                     })
                 });
 
@@ -512,6 +512,60 @@ const DBClient = {
                 return { success: true, comentario: data.comentario };
             } catch (error) {
                 console.error('Error agregando comentario:', error);
+                return { success: false, error: error.message };
+            }
+        }
+        return { success: false, error: 'No hay conexión' };
+    },
+
+    async reaccionarComentario(comentarioId, tipo) {
+        if (this.connected && this.currentUser) {
+            try {
+                const response = await fetch(`${DB_CONFIG.baseURL}/comentarios/${comentarioId}/reaccion`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        usuario: this.currentUser.username,
+                        tipo: tipo // 'like' o 'dislike'
+                    })
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.error || 'Error en reacción');
+                }
+
+                return { success: true, accion: data.accion };
+            } catch (error) {
+                console.error('Error en reacción:', error);
+                return { success: false, error: error.message };
+            }
+        }
+        return { success: false, error: 'No hay conexión' };
+    },
+
+    async reportarComentario(comentarioId, razon = '') {
+        if (this.connected && this.currentUser) {
+            try {
+                const response = await fetch(`${DB_CONFIG.baseURL}/comentarios/${comentarioId}/reportar`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        usuario: this.currentUser.username,
+                        razon: razon
+                    })
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.error || 'Error reportando comentario');
+                }
+
+                return { success: true };
+            } catch (error) {
+                console.error('Error reportando comentario:', error);
                 return { success: false, error: error.message };
             }
         }
