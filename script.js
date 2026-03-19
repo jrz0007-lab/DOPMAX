@@ -555,12 +555,47 @@ function isValidImageUrl(url) {
 }
 
 function actualizarFotoPerfil(username, url) {
-    const profilePicLarge = document.getElementById('profile-pic-large');
+    // Actualizar foto grande del perfil
+    const profilePicLarge = document.querySelector('.profile-pic-large');
     if (profilePicLarge) {
         profilePicLarge.style.backgroundImage = `url(${url})`;
         profilePicLarge.style.backgroundSize = 'cover';
         profilePicLarge.style.backgroundPosition = 'center';
         profilePicLarge.textContent = '';
+    }
+    
+    // Actualizar avatares en la navegación inferior
+    const profileAvatars = document.querySelectorAll('.profile-avatar');
+    profileAvatars.forEach(avatar => {
+        avatar.style.backgroundImage = `url(${url})`;
+        avatar.style.backgroundSize = 'cover';
+        avatar.style.backgroundPosition = 'center';
+        avatar.textContent = '';
+    });
+    
+    // Guardar en localStorage para persistencia
+    localStorage.setItem('dopmax_foto_perfil_' + username, url);
+}
+
+// Cargar foto de perfil al iniciar la app
+function cargarFotoPerfil(username) {
+    const savedFoto = localStorage.getItem('dopmax_foto_perfil_' + username);
+    if (savedFoto) {
+        const profilePicLarge = document.querySelector('.profile-pic-large');
+        if (profilePicLarge) {
+            profilePicLarge.style.backgroundImage = `url(${savedFoto})`;
+            profilePicLarge.style.backgroundSize = 'cover';
+            profilePicLarge.style.backgroundPosition = 'center';
+            profilePicLarge.textContent = '';
+        }
+        
+        const profileAvatars = document.querySelectorAll('.profile-avatar');
+        profileAvatars.forEach(avatar => {
+            avatar.style.backgroundImage = `url(${savedFoto})`;
+            avatar.style.backgroundSize = 'cover';
+            avatar.style.backgroundPosition = 'center';
+            avatar.textContent = '';
+        });
     }
 }
 
@@ -1196,8 +1231,16 @@ function initializeApp(user) {
 
         if (currentUsernameEl) currentUsernameEl.innerHTML = usernameConCandado;
         if (profileUsernameEl) profileUsernameEl.textContent = '@' + usernameConCandado;
-        if (profilePicLarge) profilePicLarge.textContent = user.avatar;
-        if (profileAvatar) profileAvatar.textContent = user.avatar;
+        
+        // Cargar foto de perfil si existe
+        cargarFotoPerfil(user.username);
+        
+        // Si no hay foto, usar avatar por defecto
+        const savedFoto = localStorage.getItem('dopmax_foto_perfil_' + user.username);
+        if (!savedFoto) {
+            if (profilePicLarge) profilePicLarge.textContent = user.avatar;
+            if (profileAvatar) profileAvatar.textContent = user.avatar;
+        }
 
         // Update room indicator
         const roomIndicator = document.getElementById('room-indicator');
@@ -2354,21 +2397,39 @@ function loadVideoComments(videoId) {
 
     console.log('📹 Cargando comentarios del video:', videoId);
 
-    // SIEMPRE usar DBClient para cargar comentarios de la BD
-    DBClient.getVideoComments(videoId)
-        .then(result => {
-            console.log('Comentarios recibidos:', result);
-            
-            if (result.success && result.comentarios) {
-                renderComments(commentsList, result.comentarios);
-            } else {
-                commentsList.innerHTML = '<div class="no-comments">Sé el primero en comentar</div>';
-            }
-        })
-        .catch(err => {
-            console.error('❌ Error cargando comentarios:', err);
-            commentsList.innerHTML = '<div class="no-comments">Error al cargar comentarios</div>';
-        });
+    // Intentar cargar desde DBClient primero
+    if (typeof DBClient !== 'undefined' && DBClient.connected) {
+        DBClient.getVideoComments(videoId)
+            .then(result => {
+                console.log('Comentarios recibidos:', result);
+
+                if (result.success && result.comentarios && result.comentarios.length > 0) {
+                    renderComments(commentsList, result.comentarios);
+                } else {
+                    // Fallback a localStorage si no hay comentarios en BD
+                    loadCommentsFromLocalStorage(videoId, commentsList);
+                }
+            })
+            .catch(err => {
+                console.error('❌ Error cargando comentarios desde BD:', err);
+                // Fallback a localStorage
+                loadCommentsFromLocalStorage(videoId, commentsList);
+            });
+    } else {
+        // Usar localStorage directamente si no hay DBClient
+        loadCommentsFromLocalStorage(videoId, commentsList);
+    }
+}
+
+function loadCommentsFromLocalStorage(videoId, commentsList) {
+    const comments = DB.getVideoComments(videoId);
+    console.log('📂 Cargando comentarios desde localStorage:', comments ? comments.length : 0);
+    
+    if (comments && comments.length > 0) {
+        renderComments(commentsList, comments);
+    } else {
+        commentsList.innerHTML = '<div class="no-comments">Sé el primero en comentar</div>';
+    }
 }
 
 function renderComments(commentsList, comments) {
@@ -2410,7 +2471,7 @@ function sendVideoComment() {
 
     const input = document.getElementById('comment-input');
     const text = input ? input.value.trim() : '';
-    
+
     if (!text) {
         console.warn('⚠️ Comentario vacío');
         return;
@@ -2424,25 +2485,32 @@ function sendVideoComment() {
 
     console.log('💬 Enviando comentario al video:', currentVideoId, 'Texto:', text);
 
-    // Usar DBClient para enviar comentario a la BD
-    DBClient.addVideoComment(currentVideoId, text)
-        .then(result => {
-            console.log('✅ Resultado comentario:', result);
+    // Intentar enviar a BD primero
+    if (typeof DBClient !== 'undefined' && DBClient.connected) {
+        DBClient.addVideoComment(currentVideoId, text)
+            .then(result => {
+                console.log('✅ Resultado comentario:', result);
 
-            if (result.success) {
-                console.log('Comentario guardado en BD');
-                input.value = '';
-                // Recargar comentarios para mostrar el nuevo
-                loadVideoComments(currentVideoId);
-            } else {
-                console.error('Error en comentario:', result.error);
-                alert(result.error || 'No se pudo enviar el comentario');
-            }
-        })
-        .catch(err => {
-            console.error('❌ Error enviando comentario:', err);
-            alert('Error de conexión al enviar comentario');
-        });
+                if (result.success) {
+                    console.log('Comentario guardado en BD');
+                    input.value = '';
+                    // Recargar comentarios para mostrar el nuevo
+                    loadVideoComments(currentVideoId);
+                } else {
+                    console.error('Error en comentario:', result.error);
+                    // Fallback a localStorage
+                    saveCommentLocal(currentVideoId, currentUser, text, input);
+                }
+            })
+            .catch(err => {
+                console.error('❌ Error enviando comentario:', err);
+                // Fallback a localStorage
+                saveCommentLocal(currentVideoId, currentUser, text, input);
+            });
+    } else {
+        // Usar localStorage directamente si no hay DBClient
+        saveCommentLocal(currentVideoId, currentUser, text, input);
+    }
 }
 
 function saveCommentLocal(videoId, currentUser, text, input) {

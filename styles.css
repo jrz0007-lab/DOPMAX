@@ -749,6 +749,8 @@ button, .tab, .dvd-video, .chat-item, .notification-item, .settings-item, .creat
     align-items: center;
     font-size: 16px;
     overflow: visible;
+    background-size: cover !important;
+    background-position: center !important;
 }
 
 #inbox-screen {
@@ -1279,6 +1281,8 @@ button, .tab, .dvd-video, .chat-item, .notification-item, .settings-item, .creat
     align-items: center;
     font-size: 50px;
     margin: 0 auto 15px;
+    background-size: cover !important;
+    background-position: center !important;
 }
 
 .profile-info h2 {

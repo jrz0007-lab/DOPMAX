@@ -1133,17 +1133,29 @@ async function initVideoComments() {
         console.log('⚠️ No hay conexión para inicializar comentarios');
         return;
     }
-    
+
     try {
-        // Obtener todos los videos
+        // Obtener todos los videos de la BD
         const videosResult = await pool.query('SELECT id FROM videos ORDER BY created_at');
+
+        // IDs de videos hardcodeados en el frontend (video1, video2, video3)
+        const hardcodedVideoIds = ['video1', 'video2', 'video3'];
         
-        if (videosResult.rows.length === 0) {
+        // Combinar videos de BD con hardcodeados
+        const allVideoIds = [
+            ...videosResult.rows.map(v => v.id),
+            ...hardcodedVideoIds
+        ];
+
+        // Eliminar duplicados
+        const uniqueVideoIds = [...new Set(allVideoIds)];
+
+        if (uniqueVideoIds.length === 0) {
             console.log('⚠️ No hay videos para inicializar comentarios');
             return;
         }
 
-        console.log(`📹 Inicializando comentarios para ${videosResult.rows.length} videos...`);
+        console.log(`📹 Inicializando comentarios para ${uniqueVideoIds.length} videos...`);
 
         // Comentarios por defecto
         const defaultComments = [
@@ -1157,22 +1169,22 @@ async function initVideoComments() {
         let commentsAdded = 0;
 
         // Agregar 2 comentarios a cada video
-        for (const video of videosResult.rows) {
+        for (const videoId of uniqueVideoIds) {
             // Verificar si el video ya tiene comentarios
             const existingComments = await pool.query(
                 'SELECT COUNT(*) FROM comentarios_video WHERE video_id = $1',
-                [video.id]
+                [videoId]
             );
-            
+
             const commentCount = parseInt(existingComments.rows[0].count);
-            
+
             // Si tiene menos de 2 comentarios, agregar
             if (commentCount < 2) {
                 for (let i = 0; i < 2 - commentCount; i++) {
                     const randomComment = defaultComments[Math.floor(Math.random() * defaultComments.length)];
                     await pool.query(
                         'INSERT INTO comentarios_video (video_id, usuario, contenido) VALUES ($1, $2, $3) ON CONFLICT DO NOTHING',
-                        [video.id, 'admin', randomComment]
+                        [videoId, 'admin', randomComment]
                     );
                     commentsAdded++;
                 }
