@@ -172,24 +172,42 @@ const DB = {
         const users = DB.getUsers();
         if (users.length > 0) return; // Ya hay usuarios
 
-        const defaultUsers = [
-            { id: '0', username: 'rafa', password: '1234', room: 'Global', avatar: 'R', createdAt: new Date().toISOString() },
-            { id: '1', username: 'maria_gomez', password: '1234', room: 'Global', avatar: 'M', createdAt: new Date().toISOString() },
-            { id: '2', username: 'carlos_99', password: '1234', room: 'Global', avatar: 'C', createdAt: new Date().toISOString() },
-            { id: '3', username: 'lucia_fernandez', password: '1234', room: 'Global', avatar: 'L', createdAt: new Date().toISOString() },
-            { id: '4', username: 'pedro_sanchez', password: '1234', room: 'Musica', avatar: 'P', createdAt: new Date().toISOString() },
-            { id: '5', username: 'ana_lopez', password: '1234', room: 'Musica', avatar: 'A', createdAt: new Date().toISOString() },
-            { id: '6', username: 'dj_ricardo', password: '1234', room: 'Musica', avatar: 'D', createdAt: new Date().toISOString() },
-            { id: '7', username: 'guitarhero', password: '1234', room: 'Musica', avatar: 'G', createdAt: new Date().toISOString() },
-            { id: '8', username: 'sofia_music', password: '1234', room: 'Musica', avatar: 'S', createdAt: new Date().toISOString() },
-            { id: '9', username: 'laura_artist', password: '1234', room: 'Musica', avatar: 'R', createdAt: new Date().toISOString() },
-            { id: '10', username: 'chefmaster', password: '1234', room: 'Global', avatar: 'H', createdAt: new Date().toISOString() }
+        // Lista de fotos de perfil aleatorias (usando picsum.photos para demos)
+        const defaultPhotos = [
+            'https://picsum.photos/seed/user1/200/200',
+            'https://picsum.photos/seed/user2/200/200',
+            'https://picsum.photos/seed/user3/200/200',
+            'https://picsum.photos/seed/user4/200/200',
+            'https://picsum.photos/seed/user5/200/200',
+            'https://picsum.photos/seed/user6/200/200',
+            'https://picsum.photos/seed/user7/200/200',
+            'https://picsum.photos/seed/user8/200/200',
+            'https://picsum.photos/seed/user9/200/200',
+            'https://picsum.photos/seed/user10/200/200',
+            'https://picsum.photos/seed/user11/200/200'
         ];
 
-        defaultUsers.forEach(user => DB.saveUser(user));
-        
-        // Establecer foto de perfil por defecto para rafa
-        localStorage.setItem('dopmax_foto_perfil_rafa', 'https://i.imgur.com/5Gn9bVY.jpg');
+        const defaultUsers = [
+            { id: '0', username: 'rafa', password: '1234', room: 'Global', avatar: 'R', createdAt: new Date().toISOString(), foto_perfil: defaultPhotos[0] },
+            { id: '1', username: 'maria_gomez', password: '1234', room: 'Global', avatar: 'M', createdAt: new Date().toISOString(), foto_perfil: defaultPhotos[1] },
+            { id: '2', username: 'carlos_99', password: '1234', room: 'Global', avatar: 'C', createdAt: new Date().toISOString(), foto_perfil: defaultPhotos[2] },
+            { id: '3', username: 'lucia_fernandez', password: '1234', room: 'Global', avatar: 'L', createdAt: new Date().toISOString(), foto_perfil: defaultPhotos[3] },
+            { id: '4', username: 'pedro_sanchez', password: '1234', room: 'Musica', avatar: 'P', createdAt: new Date().toISOString(), foto_perfil: defaultPhotos[4] },
+            { id: '5', username: 'ana_lopez', password: '1234', room: 'Musica', avatar: 'A', createdAt: new Date().toISOString(), foto_perfil: defaultPhotos[5] },
+            { id: '6', username: 'dj_ricardo', password: '1234', room: 'Musica', avatar: 'D', createdAt: new Date().toISOString(), foto_perfil: defaultPhotos[6] },
+            { id: '7', username: 'guitarhero', password: '1234', room: 'Musica', avatar: 'G', createdAt: new Date().toISOString(), foto_perfil: defaultPhotos[7] },
+            { id: '8', username: 'sofia_music', password: '1234', room: 'Musica', avatar: 'S', createdAt: new Date().toISOString(), foto_perfil: defaultPhotos[8] },
+            { id: '9', username: 'laura_artist', password: '1234', room: 'Musica', avatar: 'R', createdAt: new Date().toISOString(), foto_perfil: defaultPhotos[9] },
+            { id: '10', username: 'chefmaster', password: '1234', room: 'Global', avatar: 'H', createdAt: new Date().toISOString(), foto_perfil: defaultPhotos[10] }
+        ];
+
+        defaultUsers.forEach(user => {
+            DB.saveUser(user);
+            // Guardar foto de perfil en localStorage para cada usuario
+            if (user.foto_perfil) {
+                localStorage.setItem('dopmax_foto_perfil_' + user.username, user.foto_perfil);
+            }
+        });
     },
 
     getChatsForRoom: (roomName) => {
@@ -339,9 +357,9 @@ document.addEventListener('DOMContentLoaded', () => {
         const currentUser = DB.getCurrentUser();
         if (currentUser) {
             // Usuario ya logueado, inicializar app
-            setTimeout(() => {
+            setTimeout(async () => {
                 try {
-                    initializeApp(currentUser);
+                    await initializeApp(currentUser);
                 } catch(e) {
                     console.error('Error al inicializar usuario:', e);
                     showAuthScreen();
@@ -448,7 +466,7 @@ async function setupProfileSettings() {
             });
             document.getElementById('guardar-foto')?.addEventListener('click', async () => {
                 let url = document.getElementById('foto-url-input').value.trim();
-                
+
                 // Convertir URL de Imgur a URL directa si es necesario
                 if (url.includes('imgur.com/') && !url.includes('i.imgur.com/')) {
                     url = url.replace('imgur.com/', 'i.imgur.com/');
@@ -456,23 +474,25 @@ async function setupProfileSettings() {
                         url = url + '.jpg';
                     }
                 }
-                
+
                 if (url && isValidImageUrl(url)) {
                     // Intentar guardar en BD primero
                     const result = await DBClient.updateFoto(url);
-                    
+
                     // Guardar SIEMPRE en localStorage (funcione o no la BD)
                     localStorage.setItem('dopmax_foto_perfil_' + currentUser.username, url);
                     actualizarFotoPerfil(currentUser.username, url);
                     modalFotoPerfil.classList.add('hidden');
                     document.getElementById('foto-url-input').value = '';
-                    
+
+                    console.log('✅ Foto de perfil actualizada:', url);
+
                     // Solo mostrar error si falla la BD (pero la foto ya está guardada localmente)
                     if (!result.success) {
                         console.log('Foto guardada localmente (BD no disponible):', result.error);
                     }
                 } else {
-                    alert('Introduce una URL de imagen válida (ej: https://i.imgur.com/imagen.png)');
+                    alert('Introduce una URL de imagen válida (ej: https://i.imgur.com/imagen.png o https://picsum.photos/200/200)');
                 }
             });
         }
@@ -591,8 +611,25 @@ function actualizarFotoPerfil(username, url) {
 }
 
 // Cargar foto de perfil al iniciar la app
-function cargarFotoPerfil(username) {
-    const savedFoto = localStorage.getItem('dopmax_foto_perfil_' + username);
+async function cargarFotoPerfil(username) {
+    // Primero intentar obtener desde la base de datos
+    let savedFoto = localStorage.getItem('dopmax_foto_perfil_' + username);
+    
+    // Si no hay en localStorage, intentar obtener de la BD
+    if (!savedFoto && typeof DBClient !== 'undefined' && DBClient.connected) {
+        try {
+            const result = await DBClient.getPerfil(username);
+            if (result.success && result.perfil && result.perfil.foto_perfil) {
+                savedFoto = result.perfil.foto_perfil;
+                // Guardar en localStorage para futuras cargas
+                localStorage.setItem('dopmax_foto_perfil_' + username, savedFoto);
+                console.log('📥 Foto cargada desde BD:', savedFoto);
+            }
+        } catch (err) {
+            console.log('No se pudo cargar foto desde BD:', err.message);
+        }
+    }
+    
     console.log('🖼️ Cargando foto de perfil para', username, ':', savedFoto);
     
     if (savedFoto) {
@@ -1026,8 +1063,8 @@ function handleLogin() {
                     // Guardar inicio de sesión para tiempo en pantalla
                     localStorage.setItem('dopmax_session_start', Date.now().toString());
                     // Inicializar app directamente sin recargar
-                    setTimeout(() => {
-                        initializeApp(result.user);
+                    setTimeout(async () => {
+                        await initializeApp(result.user);
                     }, 200);
                 } else {
                     errorEl.textContent = result.error || 'Usuario o contraseña incorrectos';
@@ -1064,8 +1101,8 @@ function handleLogin() {
         localStorage.setItem('dopmax_session_start', Date.now().toString());
 
         // Inicializar app directamente sin recargar
-        setTimeout(() => {
-            initializeApp(user);
+        setTimeout(async () => {
+            await initializeApp(user);
         }, 200);
     }
 }
@@ -1112,8 +1149,8 @@ function handleRegister() {
                     // Guardar inicio de sesión para tiempo en pantalla
                     localStorage.setItem('dopmax_session_start', Date.now().toString());
                     // Inicializar app directamente sin recargar
-                    setTimeout(() => {
-                        initializeApp(result.user);
+                    setTimeout(async () => {
+                        await initializeApp(result.user);
                     }, 200);
                 } else {
                     errorEl.textContent = result.error || 'Error en el registro';
@@ -1135,6 +1172,10 @@ function handleRegister() {
 
         const rooms = ['Global', 'Musica'];
         const randomRoom = rooms[Math.floor(Math.random() * rooms.length)];
+        
+        // Foto de perfil aleatoria para nuevos usuarios
+        const randomPhotoIndex = Math.floor(Math.random() * 11);
+        const randomPhoto = 'https://picsum.photos/seed/user' + randomPhotoIndex + '/200/200';
 
         const newUser = {
             id: Date.now().toString(),
@@ -1142,15 +1183,18 @@ function handleRegister() {
             password: password,
             room: randomRoom,
             avatar: ['A', 'B', 'C', 'D', 'E', 'F'][Math.floor(Math.random() * 6)],
+            foto_perfil: randomPhoto,
             createdAt: new Date().toISOString()
         };
 
         DB.saveUser(newUser);
+        // Guardar foto de perfil en localStorage
+        localStorage.setItem('dopmax_foto_perfil_' + username, randomPhoto);
         DB.setCurrentUser(newUser);
 
         // Inicializar app directamente sin recargar
-        setTimeout(() => {
-            initializeApp(newUser);
+        setTimeout(async () => {
+            await initializeApp(newUser);
         }, 200);
     }
 }
@@ -1220,7 +1264,7 @@ function showAuthScreen() {
     document.getElementById('register-form').classList.add('hidden');
 }
 
-function initializeApp(user) {
+async function initializeApp(user) {
     try {
         console.log('Inicializando usuario:', user.username);
 
@@ -1250,10 +1294,10 @@ function initializeApp(user) {
 
         if (currentUsernameEl) currentUsernameEl.innerHTML = usernameConCandado;
         if (profileUsernameEl) profileUsernameEl.textContent = '@' + usernameConCandado;
-        
-        // Cargar foto de perfil si existe
-        cargarFotoPerfil(user.username);
-        
+
+        // Cargar foto de perfil (async - desde BD o localStorage)
+        await cargarFotoPerfil(user.username);
+
         // Si no hay foto, usar avatar por defecto
         const savedFoto = localStorage.getItem('dopmax_foto_perfil_' + user.username);
         if (!savedFoto) {

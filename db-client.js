@@ -714,6 +714,25 @@ const DBClient = {
         return { success: false, error: 'No hay conexión' };
     },
 
+    async getPerfil(username) {
+        if (this.connected) {
+            try {
+                const response = await fetch(`${DB_CONFIG.baseURL}/users/${encodeURIComponent(username)}`);
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.error || 'Error obteniendo perfil');
+                }
+
+                return { success: true, perfil: data.user };
+            } catch (error) {
+                console.error('Error obteniendo perfil:', error);
+                return { success: false, error: error.message };
+            }
+        }
+        return { success: false, error: 'No hay conexión' };
+    },
+
     async bloquearUsuario(usuario_bloqueado) {
         if (this.connected && this.currentUser) {
             try {
