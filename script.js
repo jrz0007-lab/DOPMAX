@@ -359,12 +359,12 @@ document.addEventListener('DOMContentLoaded', () => {
         document.addEventListener('copy', (e) => { e.preventDefault(); return false; });
         document.addEventListener('cut', (e) => { e.preventDefault(); return false; });
         document.addEventListener('paste', (e) => {
-            const allowed = ['comment-input', 'chat-input', 'login-username', 'login-password', 'register-username', 'register-password', 'register-confirm'];
+            const allowed = ['comment-input', 'chat-input', 'login-username', 'login-password', 'register-username', 'register-password', 'register-confirm', 'foto-url-input'];
             if (e.target.id && allowed.includes(e.target.id)) return;
             e.preventDefault(); return false;
         });
         document.addEventListener('keydown', (e) => {
-            const allowed = ['comment-input', 'chat-input', 'login-username', 'login-password', 'register-username', 'register-password', 'register-confirm'];
+            const allowed = ['comment-input', 'chat-input', 'login-username', 'login-password', 'register-username', 'register-password', 'register-confirm', 'foto-url-input'];
             if (e.target.id && allowed.includes(e.target.id)) return;
             if ((e.ctrlKey || e.metaKey) && ['c','v','x','a'].includes(e.key.toLowerCase())) {
                 e.preventDefault(); return false;
@@ -515,23 +515,20 @@ async function setupProfileSettings() {
             });
         }
 
-        // Abrir modal Empresa (solo para _admin)
+        // Abrir modal Empresa (solo para _admin) - Mostrar solo si es admin
         if (btnEmpresa && modalEmpresa) {
+            // Mostrar botón solo si es admin
+            if (currentUser.username.endsWith('_admin')) {
+                btnEmpresa.classList.remove('hidden');
+            }
+            
             btnEmpresa.addEventListener('click', () => {
-                if (!currentUser.username.endsWith('_admin')) {
-                    alert('⚠️ Esta función solo está disponible para cuentas de empresa (_admin)');
-                    return;
-                }
                 modalEmpresa.classList.remove('hidden');
             });
             document.getElementById('close-empresa')?.addEventListener('click', () => {
                 modalEmpresa.classList.add('hidden');
             });
             document.getElementById('activar-empresa')?.addEventListener('click', async () => {
-                if (!currentUser.username.endsWith('_admin')) {
-                    alert('⚠️ Esta función solo está disponible para cuentas de empresa (_admin)');
-                    return;
-                }
                 alert('✅ Cuenta de empresa activada. Ahora tienes acceso a estadísticas avanzadas.');
                 modalEmpresa.classList.add('hidden');
             });
