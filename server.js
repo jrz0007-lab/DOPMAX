@@ -77,7 +77,7 @@ async function createTables() {
     }
 
     try {
-        // Tabla de usuarios
+        // Tabla de usuarios (con columnas adicionales para configuración)
         await pool.query(`
             CREATE TABLE IF NOT EXISTS usuarios (
                 nombreusuario VARCHAR(50) PRIMARY KEY,
@@ -85,7 +85,56 @@ async function createTables() {
                 chatsactivos INTEGER DEFAULT 0,
                 avatar VARCHAR(10) DEFAULT '🐱',
                 sala VARCHAR(50) DEFAULT 'Global',
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                foto_perfil VARCHAR(500),
+                cuenta_privada BOOLEAN DEFAULT FALSE,
+                permitir_mensajes BOOLEAN DEFAULT TRUE,
+                permitir_comentarios BOOLEAN DEFAULT TRUE,
+                es_empresa BOOLEAN DEFAULT FALSE,
+                tiempo_uso_acumulado INTEGER DEFAULT 0
+            )
+        `);
+
+        // Tabla de usuarios bloqueados
+        await pool.query(`
+            CREATE TABLE IF NOT EXISTS usuarios_bloqueados (
+                id SERIAL PRIMARY KEY,
+                usuario_bloqueador VARCHAR(50) NOT NULL REFERENCES usuarios(nombreusuario) ON DELETE CASCADE,
+                usuario_bloqueado VARCHAR(50) NOT NULL REFERENCES usuarios(nombreusuario) ON DELETE CASCADE,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                UNIQUE(usuario_bloqueador, usuario_bloqueado)
+            )
+        `);
+
+        // Tabla de preferencias de contenido (encuesta ampliada)
+        await pool.query(`
+            CREATE TABLE IF NOT EXISTS preferencias_usuario (
+                id SERIAL PRIMARY KEY,
+                usuario VARCHAR(50) NOT NULL REFERENCES usuarios(nombreusuario) ON DELETE CASCADE,
+                musica BOOLEAN DEFAULT TRUE,
+                gaming BOOLEAN DEFAULT TRUE,
+                deportes BOOLEAN DEFAULT TRUE,
+                comedia BOOLEAN DEFAULT TRUE,
+                tecnologia BOOLEAN DEFAULT TRUE,
+                educacion BOOLEAN DEFAULT TRUE,
+                arte BOOLEAN DEFAULT TRUE,
+                cocina BOOLEAN DEFAULT TRUE,
+                viajes BOOLEAN DEFAULT TRUE,
+                mascotas BOOLEAN DEFAULT TRUE,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                UNIQUE(usuario)
+            )
+        `);
+
+        // Tabla de tiempo de uso
+        await pool.query(`
+            CREATE TABLE IF NOT EXISTS tiempo_uso (
+                id SERIAL PRIMARY KEY,
+                usuario VARCHAR(50) NOT NULL REFERENCES usuarios(nombreusuario) ON DELETE CASCADE,
+                fecha DATE DEFAULT CURRENT_DATE,
+                minutos INTEGER DEFAULT 0,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                UNIQUE(usuario, fecha)
             )
         `);
 
@@ -852,6 +901,215 @@ app.post('/api/gato/:usuario/clicks', async (req, res) => {
         res.json({ success: true, clicks: result.rows[0].clicks });
     } catch (error) {
         console.error('Error guardando clicks:', error);
+        res.status(500).json({ error: 'Error en el servidor' });
+    }
+});
+
+// ============================================
+// ENDPOINTS DE CONFIGURACIÓN DE USUARIO
+// ============================================
+
+// Actualizar configuración de privacidad
+app.put('/api/users/:usuario/privacy', async (req, res) => {
+    try {
+        const { usuario } = req.params;
+        const { cuenta_privada, permitir_mensajes, permitir_comentarios } = req.body;
+
+        await pool.query(
+            `UPDATE usuarios SET 
+             cuenta_privada = COALESCE($1, cuenta_privada),
+             permitir_mensajes = COALESCE($2, permitir_mensajes),
+             permitir_comentarios = COALESCE($3, permitir_comentarios)
+             WHERE nombreusuario = $4`,
+            [cuenta_privada, permitir_mensajes, permitir_comentarios, usuario]
+        );
+
+        res.json({ success: true, message: 'Privacidad actualizada' });
+    } catch (error) {
+        console.error('Error actualizando privacidad:', error);
+        res.status(500).json({ error: 'Error en el servidor' });
+    }
+});
+
+// Actualizar foto de perfil
+app.put('/api/users/:usuario/foto', async (req, res) => {
+    try {
+        const { usuario } = req.params;
+        const { foto_url } = req.body;
+
+        await pool.query(
+            'UPDATE usuarios SET foto_perfil = $1 WHERE nombreusuario = $2',
+            [foto_url, usuario]
+        );
+
+        res.json({ success: true, message: 'Foto actualizada' });
+    } catch (error) {
+        console.error('Error actualizando foto:', error);
+        res.status(500).json({ error: 'Error en el servidor' });
+    }
+});
+
+// Bloquear usuario
+app.post('/api/users/:usuario/bloquear', async (req, res) => {
+    try {
+        const { usuario } = req.params;
+        const { usuario_bloqueado } = req.body;
+
+        await pool.query(
+            'INSERT INTO usuarios_bloqueados (usuario_bloqueador, usuario_bloqueado) VALUES ($1, $2)',
+            [usuario, usuario_bloqueado]
+        );
+
+        res.json({ success: true, message: 'Usuario bloqueado' });
+    } catch (error) {
+        console.error('Error bloqueando usuario:', error);
+        res.status(500).json({ error: 'Error en el servidor' });
+    }
+});
+
+// Desbloquear usuario
+app.delete('/api/users/:usuario/bloquear/:usuario_bloqueado', async (req, res) => {
+    try {
+        const { usuario, usuario_bloqueado } = req.params;
+
+        await pool.query(
+            'DELETE FROM usuarios_bloqueados WHERE usuario_bloqueador = $1 AND usuario_bloqueado = $2',
+            [usuario, usuario_bloqueado]
+        );
+
+        res.json({ success: true, message: 'Usuario desbloqueado' });
+    } catch (error) {
+        console.error('Error desbloqueando usuario:', error);
+        res.status(500).json({ error: 'Error en el servidor' });
+    }
+});
+
+// Obtener usuarios bloqueados
+app.get('/api/users/:usuario/bloqueados', async (req, res) => {
+    try {
+        const { usuario } = req.params;
+
+        const result = await pool.query(
+            'SELECT usuario_bloqueado, created_at FROM usuarios_bloqueados WHERE usuario_bloqueador = $1',
+            [usuario]
+        );
+
+        res.json({ bloqueados: result.rows });
+    } catch (error) {
+        console.error('Error obteniendo bloqueados:', error);
+        res.status(500).json({ error: 'Error en el servidor' });
+    }
+});
+
+// Actualizar preferencias de contenido
+app.put('/api/users/:usuario/preferencias', async (req, res) => {
+    try {
+        const { usuario } = req.params;
+        const prefs = req.body;
+
+        await pool.query(`
+            INSERT INTO preferencias_usuario (usuario, musica, gaming, deportes, comedia, tecnologia, educacion, arte, cocina, viajes, mascotas)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+            ON CONFLICT (usuario) DO UPDATE SET
+                musica = EXCLUDED.musica,
+                gaming = EXCLUDED.gaming,
+                deportes = EXCLUDED.deportes,
+                comedia = EXCLUDED.comedia,
+                tecnologia = EXCLUDED.tecnologia,
+                educacion = EXCLUDED.educacion,
+                arte = EXCLUDED.arte,
+                cocina = EXCLUDED.cocina,
+                viajes = EXCLUDED.viajes,
+                mascotas = EXCLUDED.mascotas
+            `,
+            [usuario, prefs.musica, prefs.gaming, prefs.deportes, prefs.comedia, 
+             prefs.tecnologia, prefs.educacion, prefs.arte, prefs.cocina, prefs.viajes, prefs.mascotas]
+        );
+
+        res.json({ success: true, message: 'Preferencias actualizadas' });
+    } catch (error) {
+        console.error('Error actualizando preferencias:', error);
+        res.status(500).json({ error: 'Error en el servidor' });
+    }
+});
+
+// Obtener preferencias de contenido
+app.get('/api/users/:usuario/preferencias', async (req, res) => {
+    try {
+        const { usuario } = req.params;
+
+        const result = await pool.query(
+            'SELECT * FROM preferencias_usuario WHERE usuario = $1',
+            [usuario]
+        );
+
+        if (result.rows.length === 0) {
+            res.json({ preferencias: null });
+        } else {
+            res.json({ preferencias: result.rows[0] });
+        }
+    } catch (error) {
+        console.error('Error obteniendo preferencias:', error);
+        res.status(500).json({ error: 'Error en el servidor' });
+    }
+});
+
+// Registrar tiempo de uso
+app.post('/api/users/:usuario/tiempo', async (req, res) => {
+    try {
+        const { usuario } = req.params;
+        const { minutos } = req.body;
+        const hoy = new Date().toISOString().split('T')[0];
+
+        await pool.query(`
+            INSERT INTO tiempo_uso (usuario, fecha, minutos)
+            VALUES ($1, $2, $3)
+            ON CONFLICT (usuario, fecha) DO UPDATE SET minutos = tiempo_uso.minutos + $3
+            `,
+            [usuario, hoy, minutos]
+        );
+
+        res.json({ success: true, message: 'Tiempo registrado' });
+    } catch (error) {
+        console.error('Error registrando tiempo:', error);
+        res.status(500).json({ error: 'Error en el servidor' });
+    }
+});
+
+// Obtener estadísticas de tiempo de uso
+app.get('/api/users/:usuario/tiempo', async (req, res) => {
+    try {
+        const { usuario } = req.params;
+
+        const result = await pool.query(`
+            SELECT fecha, minutos FROM tiempo_uso 
+            WHERE usuario = $1 
+            ORDER BY fecha DESC 
+            LIMIT 30
+            `,
+            [usuario]
+        );
+
+        res.json({ tiempo_uso: result.rows });
+    } catch (error) {
+        console.error('Error obteniendo tiempo de uso:', error);
+        res.status(500).json({ error: 'Error en el servidor' });
+    }
+});
+
+// Verificar si usuario está bloqueado
+app.get('/api/users/:usuario/esta-bloqueado/:otro_usuario', async (req, res) => {
+    try {
+        const { usuario, otro_usuario } = req.params;
+
+        const result = await pool.query(
+            'SELECT * FROM usuarios_bloqueados WHERE usuario_bloqueador = $1 AND usuario_bloqueado = $2',
+            [otro_usuario, usuario]
+        );
+
+        res.json({ bloqueado: result.rows.length > 0 });
+    } catch (error) {
+        console.error('Error verificando bloqueo:', error);
         res.status(500).json({ error: 'Error en el servidor' });
     }
 });
