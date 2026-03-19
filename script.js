@@ -2589,12 +2589,13 @@ function renderComments(commentsList, comments) {
     }
 
     commentsList.innerHTML = '';
-    comments.forEach(comment => {
+    comments.forEach((comment, index) => {
         const commentEl = document.createElement('div');
         commentEl.className = 'comment-item';
         
-        const likes = comment.likes || 0;
-        const dislikes = comment.dislikes || 0;
+        // Generar likes y dislikes aleatorios para cada comentario
+        const likes = Math.floor(Math.random() * 500); // 0 a 499 likes
+        const dislikes = Math.floor(Math.random() * 50); // 0 a 49 dislikes
         
         commentEl.innerHTML = `
             <div class="comment-avatar">${comment.avatar || '👤'}</div>
