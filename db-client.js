@@ -663,6 +663,224 @@ const DBClient = {
     },
 
     // ============================================
+    // CONFIGURACIÓN DE USUARIO
+    // ============================================
+
+    async updatePrivacy(cuenta_privada, permitir_mensajes, permitir_comentarios) {
+        if (this.connected && this.currentUser) {
+            try {
+                const response = await fetch(`${DB_CONFIG.baseURL}/users/${encodeURIComponent(this.currentUser.username)}/privacy`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ cuenta_privada, permitir_mensajes, permitir_comentarios })
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.error || 'Error actualizando privacidad');
+                }
+
+                return { success: true };
+            } catch (error) {
+                console.error('Error actualizando privacidad:', error);
+                return { success: false, error: error.message };
+            }
+        }
+        return { success: false, error: 'No hay conexión' };
+    },
+
+    async updateFoto(foto_url) {
+        if (this.connected && this.currentUser) {
+            try {
+                const response = await fetch(`${DB_CONFIG.baseURL}/users/${encodeURIComponent(this.currentUser.username)}/foto`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ foto_url })
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.error || 'Error actualizando foto');
+                }
+
+                return { success: true };
+            } catch (error) {
+                console.error('Error actualizando foto:', error);
+                return { success: false, error: error.message };
+            }
+        }
+        return { success: false, error: 'No hay conexión' };
+    },
+
+    async bloquearUsuario(usuario_bloqueado) {
+        if (this.connected && this.currentUser) {
+            try {
+                const response = await fetch(`${DB_CONFIG.baseURL}/users/${encodeURIComponent(this.currentUser.username)}/bloquear`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ usuario_bloqueado })
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.error || 'Error bloqueando usuario');
+                }
+
+                return { success: true };
+            } catch (error) {
+                console.error('Error bloqueando usuario:', error);
+                return { success: false, error: error.message };
+            }
+        }
+        return { success: false, error: 'No hay conexión' };
+    },
+
+    async desbloquearUsuario(usuario_bloqueado) {
+        if (this.connected && this.currentUser) {
+            try {
+                const response = await fetch(`${DB_CONFIG.baseURL}/users/${encodeURIComponent(this.currentUser.username)}/bloquear/${encodeURIComponent(usuario_bloqueado)}`, {
+                    method: 'DELETE'
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.error || 'Error desbloqueando usuario');
+                }
+
+                return { success: true };
+            } catch (error) {
+                console.error('Error desbloqueando usuario:', error);
+                return { success: false, error: error.message };
+            }
+        }
+        return { success: false, error: 'No hay conexión' };
+    },
+
+    async getBloqueados() {
+        if (this.connected && this.currentUser) {
+            try {
+                const response = await fetch(`${DB_CONFIG.baseURL}/users/${encodeURIComponent(this.currentUser.username)}/bloqueados`);
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.error || 'Error obteniendo bloqueados');
+                }
+
+                return { success: true, bloqueados: data.bloqueados };
+            } catch (error) {
+                console.error('Error obteniendo bloqueados:', error);
+                return { success: false, error: error.message };
+            }
+        }
+        return { success: false, error: 'No hay conexión' };
+    },
+
+    async updatePreferencias(prefs) {
+        if (this.connected && this.currentUser) {
+            try {
+                const response = await fetch(`${DB_CONFIG.baseURL}/users/${encodeURIComponent(this.currentUser.username)}/preferencias`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(prefs)
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.error || 'Error actualizando preferencias');
+                }
+
+                return { success: true };
+            } catch (error) {
+                console.error('Error actualizando preferencias:', error);
+                return { success: false, error: error.message };
+            }
+        }
+        return { success: false, error: 'No hay conexión' };
+    },
+
+    async getPreferencias() {
+        if (this.connected && this.currentUser) {
+            try {
+                const response = await fetch(`${DB_CONFIG.baseURL}/users/${encodeURIComponent(this.currentUser.username)}/preferencias`);
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.error || 'Error obteniendo preferencias');
+                }
+
+                return { success: true, preferencias: data.preferencias };
+            } catch (error) {
+                console.error('Error obteniendo preferencias:', error);
+                return { success: false, error: error.message };
+            }
+        }
+        return { success: false, error: 'No hay conexión' };
+    },
+
+    async registrarTiempo(minutos) {
+        if (this.connected && this.currentUser) {
+            try {
+                const response = await fetch(`${DB_CONFIG.baseURL}/users/${encodeURIComponent(this.currentUser.username)}/tiempo`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ minutos })
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.error || 'Error registrando tiempo');
+                }
+
+                return { success: true };
+            } catch (error) {
+                console.error('Error registrando tiempo:', error);
+                return { success: false, error: error.message };
+            }
+        }
+        return { success: false, error: 'No hay conexión' };
+    },
+
+    async getTiempoUso() {
+        if (this.connected && this.currentUser) {
+            try {
+                const response = await fetch(`${DB_CONFIG.baseURL}/users/${encodeURIComponent(this.currentUser.username)}/tiempo`);
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.error || 'Error obteniendo tiempo de uso');
+                }
+
+                return { success: true, tiempo_uso: data.tiempo_uso };
+            } catch (error) {
+                console.error('Error obteniendo tiempo de uso:', error);
+                return { success: false, error: error.message };
+            }
+        }
+        return { success: false, error: 'No hay conexión' };
+    },
+
+    async estaBloqueado(otro_usuario) {
+        if (this.connected && this.currentUser) {
+            try {
+                const response = await fetch(`${DB_CONFIG.baseURL}/users/${encodeURIComponent(otro_usuario)}/esta-bloqueado/${encodeURIComponent(this.currentUser.username)}`);
+                const data = await response.json();
+
+                return { success: true, bloqueado: data.bloqueado };
+            } catch (error) {
+                console.error('Error verificando bloqueo:', error);
+                return { success: false, error: error.message };
+            }
+        }
+        return { success: false, error: 'No hay conexión' };
+    },
+
+    // ============================================
     // UTILIDADES
     // ============================================
 
