@@ -447,15 +447,29 @@ async function setupProfileSettings() {
                 modalFotoPerfil.classList.add('hidden');
             });
             document.getElementById('guardar-foto')?.addEventListener('click', async () => {
-                const url = document.getElementById('foto-url-input').value.trim();
+                let url = document.getElementById('foto-url-input').value.trim();
+                
+                // Convertir URL de Imgur a URL directa si es necesario
+                if (url.includes('imgur.com/') && !url.includes('i.imgur.com/')) {
+                    url = url.replace('imgur.com/', 'i.imgur.com/');
+                    if (!url.endsWith('.jpg') && !url.endsWith('.png') && !url.endsWith('.jpeg')) {
+                        url = url + '.jpg';
+                    }
+                }
+                
                 if (url && isValidImageUrl(url)) {
+                    // Intentar guardar en BD primero
                     const result = await DBClient.updateFoto(url);
-                    if (result.success) {
-                        localStorage.setItem('dopmax_foto_perfil_' + currentUser.username, url);
-                        actualizarFotoPerfil(currentUser.username, url);
-                        modalFotoPerfil.classList.add('hidden');
-                    } else {
-                        alert('Error: ' + result.error);
+                    
+                    // Guardar SIEMPRE en localStorage (funcione o no la BD)
+                    localStorage.setItem('dopmax_foto_perfil_' + currentUser.username, url);
+                    actualizarFotoPerfil(currentUser.username, url);
+                    modalFotoPerfil.classList.add('hidden');
+                    document.getElementById('foto-url-input').value = '';
+                    
+                    // Solo mostrar error si falla la BD (pero la foto ya está guardada localmente)
+                    if (!result.success) {
+                        console.log('Foto guardada localmente (BD no disponible):', result.error);
                     }
                 } else {
                     alert('Introduce una URL de imagen válida (ej: https://i.imgur.com/imagen.png)');
@@ -579,6 +593,8 @@ function actualizarFotoPerfil(username, url) {
 // Cargar foto de perfil al iniciar la app
 function cargarFotoPerfil(username) {
     const savedFoto = localStorage.getItem('dopmax_foto_perfil_' + username);
+    console.log('🖼️ Cargando foto de perfil para', username, ':', savedFoto);
+    
     if (savedFoto) {
         const profilePicLarge = document.querySelector('.profile-pic-large');
         if (profilePicLarge) {
@@ -586,6 +602,7 @@ function cargarFotoPerfil(username) {
             profilePicLarge.style.background = `url(${savedFoto}) no-repeat center center`;
             profilePicLarge.style.backgroundSize = 'cover';
             profilePicLarge.textContent = '';
+            console.log('✅ Foto aplicada en profile-pic-large');
         }
 
         const profileAvatars = document.querySelectorAll('.profile-avatar');
@@ -594,7 +611,10 @@ function cargarFotoPerfil(username) {
             avatar.style.background = `url(${savedFoto}) no-repeat center center`;
             avatar.style.backgroundSize = 'cover';
             avatar.textContent = '';
+            console.log('✅ Foto aplicada en profile-avatar');
         });
+    } else {
+        console.log('⚠️ No hay foto guardada para', username);
     }
 }
 
