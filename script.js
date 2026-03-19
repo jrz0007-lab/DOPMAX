@@ -454,7 +454,6 @@ async function setupProfileSettings() {
                         localStorage.setItem('dopmax_foto_perfil_' + currentUser.username, url);
                         actualizarFotoPerfil(currentUser.username, url);
                         modalFotoPerfil.classList.add('hidden');
-                        alert('✅ Foto de perfil actualizada');
                     } else {
                         alert('Error: ' + result.error);
                     }
@@ -498,7 +497,6 @@ async function setupProfileSettings() {
             document.getElementById('guardar-privacidad')?.addEventListener('click', async () => {
                 await guardarPrivacidad(currentUser.username);
                 modalPrivacidad.classList.add('hidden');
-                alert('✅ Configuración de privacidad guardada en la base de datos');
             });
         }
 
@@ -514,7 +512,6 @@ async function setupProfileSettings() {
             document.getElementById('guardar-preferencias')?.addEventListener('click', async () => {
                 await guardarPreferencias(currentUser.username);
                 modalPreferencias.classList.add('hidden');
-                alert('✅ Preferencias guardadas en la base de datos');
             });
         }
 
@@ -532,7 +529,6 @@ async function setupProfileSettings() {
                 modalEmpresa.classList.add('hidden');
             });
             document.getElementById('activar-empresa')?.addEventListener('click', async () => {
-                alert('✅ Cuenta de empresa activada. Ahora tienes acceso a estadísticas avanzadas.');
                 modalEmpresa.classList.add('hidden');
             });
         }
