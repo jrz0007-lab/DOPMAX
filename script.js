@@ -558,21 +558,21 @@ function actualizarFotoPerfil(username, url) {
     // Actualizar foto grande del perfil
     const profilePicLarge = document.querySelector('.profile-pic-large');
     if (profilePicLarge) {
-        profilePicLarge.style.backgroundImage = `url(${url})`;
+        profilePicLarge.classList.add('has-image');
+        profilePicLarge.style.background = `url(${url}) no-repeat center center`;
         profilePicLarge.style.backgroundSize = 'cover';
-        profilePicLarge.style.backgroundPosition = 'center';
         profilePicLarge.textContent = '';
     }
-    
+
     // Actualizar avatares en la navegación inferior
     const profileAvatars = document.querySelectorAll('.profile-avatar');
     profileAvatars.forEach(avatar => {
-        avatar.style.backgroundImage = `url(${url})`;
+        avatar.classList.add('has-image');
+        avatar.style.background = `url(${url}) no-repeat center center`;
         avatar.style.backgroundSize = 'cover';
-        avatar.style.backgroundPosition = 'center';
         avatar.textContent = '';
     });
-    
+
     // Guardar en localStorage para persistencia
     localStorage.setItem('dopmax_foto_perfil_' + username, url);
 }
@@ -583,17 +583,17 @@ function cargarFotoPerfil(username) {
     if (savedFoto) {
         const profilePicLarge = document.querySelector('.profile-pic-large');
         if (profilePicLarge) {
-            profilePicLarge.style.backgroundImage = `url(${savedFoto})`;
+            profilePicLarge.classList.add('has-image');
+            profilePicLarge.style.background = `url(${savedFoto}) no-repeat center center`;
             profilePicLarge.style.backgroundSize = 'cover';
-            profilePicLarge.style.backgroundPosition = 'center';
             profilePicLarge.textContent = '';
         }
-        
+
         const profileAvatars = document.querySelectorAll('.profile-avatar');
         profileAvatars.forEach(avatar => {
-            avatar.style.backgroundImage = `url(${savedFoto})`;
+            avatar.classList.add('has-image');
+            avatar.style.background = `url(${savedFoto}) no-repeat center center`;
             avatar.style.backgroundSize = 'cover';
-            avatar.style.backgroundPosition = 'center';
             avatar.textContent = '';
         });
     }
