@@ -414,7 +414,7 @@ function setupAuthHandlers() {
 }
 
 // Setup Profile Settings
-function setupProfileSettings() {
+async function setupProfileSettings() {
     try {
         const currentUser = DB.getCurrentUser();
         if (!currentUser) return;
@@ -435,7 +435,7 @@ function setupProfileSettings() {
         const modalPreferencias = document.getElementById('modal-preferencias');
         const modalEmpresa = document.getElementById('modal-empresa');
 
-        // Abrir modal Foto de Perfil
+        // Abrir modal Foto de Perfil - Ahora usa DBClient
         if (btnFotoPerfil && modalFotoPerfil) {
             btnFotoPerfil.addEventListener('click', () => {
                 modalFotoPerfil.classList.remove('hidden');
@@ -443,23 +443,28 @@ function setupProfileSettings() {
             document.getElementById('close-foto-perfil')?.addEventListener('click', () => {
                 modalFotoPerfil.classList.add('hidden');
             });
-            document.getElementById('guardar-foto')?.addEventListener('click', () => {
+            document.getElementById('guardar-foto')?.addEventListener('click', async () => {
                 const url = document.getElementById('foto-url-input').value.trim();
                 if (url && isValidImageUrl(url)) {
-                    localStorage.setItem('dopmax_foto_perfil_' + currentUser.username, url);
-                    actualizarFotoPerfil(currentUser.username, url);
-                    modalFotoPerfil.classList.add('hidden');
-                    alert('Foto de perfil actualizada');
+                    const result = await DBClient.updateFoto(url);
+                    if (result.success) {
+                        localStorage.setItem('dopmax_foto_perfil_' + currentUser.username, url);
+                        actualizarFotoPerfil(currentUser.username, url);
+                        modalFotoPerfil.classList.add('hidden');
+                        alert('✅ Foto de perfil actualizada');
+                    } else {
+                        alert('Error: ' + result.error);
+                    }
                 } else {
                     alert('Introduce una URL de imagen válida (ej: https://i.imgur.com/imagen.png)');
                 }
             });
         }
 
-        // Abrir modal Tiempo en Pantalla
+        // Abrir modal Tiempo en Pantalla - Con estadísticas de BD
         if (btnTiempo && modalTiempo) {
-            btnTiempo.addEventListener('click', () => {
-                actualizarTiempoPantalla();
+            btnTiempo.addEventListener('click', async () => {
+                await actualizarTiempoPantalla();
                 modalTiempo.classList.remove('hidden');
             });
             document.getElementById('close-tiempo')?.addEventListener('click', () => {
@@ -467,10 +472,10 @@ function setupProfileSettings() {
             });
         }
 
-        // Abrir modal Cuentas Bloqueadas
+        // Abrir modal Cuentas Bloqueadas - Ahora usa DB
         if (btnBloqueadas && modalBloqueadas) {
-            btnBloqueadas.addEventListener('click', () => {
-                cargarCuentasBloqueadas();
+            btnBloqueadas.addEventListener('click', async () => {
+                await cargarCuentasBloqueadas();
                 modalBloqueadas.classList.remove('hidden');
             });
             document.getElementById('close-bloqueadas')?.addEventListener('click', () => {
@@ -478,41 +483,75 @@ function setupProfileSettings() {
             });
         }
 
-        // Abrir modal Privacidad
+        // Abrir modal Privacidad - Ahora guarda en BD
         if (btnPrivacidad && modalPrivacidad) {
-            btnPrivacidad.addEventListener('click', () => {
-                cargarPrivacidad();
+            btnPrivacidad.addEventListener('click', async () => {
+                await cargarPrivacidad(currentUser.username);
                 modalPrivacidad.classList.remove('hidden');
             });
             document.getElementById('close-privacidad')?.addEventListener('click', () => {
                 modalPrivacidad.classList.add('hidden');
             });
-            document.getElementById('guardar-privacidad')?.addEventListener('click', () => {
-                guardarPrivacidad(currentUser.username);
+            document.getElementById('guardar-privacidad')?.addEventListener('click', async () => {
+                await guardarPrivacidad(currentUser.username);
                 modalPrivacidad.classList.add('hidden');
-                alert('Configuración de privacidad guardada');
+                alert('✅ Configuración de privacidad guardada en la base de datos');
             });
         }
 
-        // Abrir modal Preferencias
+        // Abrir modal Preferencias - Ahora guarda en BD
         if (btnPreferencias && modalPreferencias) {
-            btnPreferencias.addEventListener('click', () => {
-                cargarPreferencias();
+            btnPreferencias.addEventListener('click', async () => {
+                await cargarPreferencias(currentUser.username);
                 modalPreferencias.classList.remove('hidden');
             });
             document.getElementById('close-preferencias')?.addEventListener('click', () => {
                 modalPreferencias.classList.add('hidden');
             });
-            document.getElementById('guardar-preferencias')?.addEventListener('click', () => {
-                guardarPreferencias(currentUser.username);
+            document.getElementById('guardar-preferencias')?.addEventListener('click', async () => {
+                await guardarPreferencias(currentUser.username);
                 modalPreferencias.classList.add('hidden');
-                alert('Preferencias guardadas');
+                alert('✅ Preferencias guardadas en la base de datos');
             });
         }
 
         // Abrir modal Empresa (solo para _admin)
         if (btnEmpresa && modalEmpresa) {
             btnEmpresa.addEventListener('click', () => {
+                if (!currentUser.username.endsWith('_admin')) {
+                    alert('⚠️ Esta función solo está disponible para cuentas de empresa (_admin)');
+                    return;
+                }
+                modalEmpresa.classList.remove('hidden');
+            });
+            document.getElementById('close-empresa')?.addEventListener('click', () => {
+                modalEmpresa.classList.add('hidden');
+            });
+            document.getElementById('activar-empresa')?.addEventListener('click', async () => {
+                if (!currentUser.username.endsWith('_admin')) {
+                    alert('⚠️ Esta función solo está disponible para cuentas de empresa (_admin)');
+                    return;
+                }
+                alert('✅ Cuenta de empresa activada. Ahora tienes acceso a estadísticas avanzadas.');
+                modalEmpresa.classList.add('hidden');
+            });
+        }
+
+        // Cerrar modales al hacer click fuera
+        [modalFotoPerfil, modalTiempo, modalBloqueadas, modalPrivacidad, modalPreferencias, modalEmpresa].forEach(modal => {
+            if (modal) {
+                modal.addEventListener('click', (e) => {
+                    if (e.target === modal) {
+                        modal.classList.add('hidden');
+                    }
+                });
+            }
+        });
+
+    } catch(e) {
+        console.log('Profile settings error:', e);
+    }
+}
                 if (currentUser.username.endsWith('_admin')) {
                     modalEmpresa.classList.remove('hidden');
                 } else {
@@ -558,37 +597,67 @@ function actualizarFotoPerfil(username, url) {
     }
 }
 
-function actualizarTiempoPantalla() {
-    const now = Date.now();
-    const sessionStart = parseInt(localStorage.getItem('dopmax_session_start') || now.toString());
-    const tiempoHoy = Math.floor((now - sessionStart) / 60000); // minutos
-    
-    // Simular datos semanales y mensuales
-    const tiempoSemana = tiempoHoy + Math.floor(Math.random() * 120);
-    const tiempoMes = tiempoSemana * 4 + Math.floor(Math.random() * 500);
-    
+async function actualizarTiempoPantalla() {
+    // Intentar obtener datos de la BD
+    let tiempoHoy = 0, tiempoSemana = 0, tiempoMes = 0;
+
+    if (typeof DBClient !== 'undefined') {
+        const result = await DBClient.getTiempoUso();
+        if (result.success && result.tiempo_uso) {
+            const hoy = new Date().toISOString().split('T')[0];
+            const usoHoy = result.tiempo_uso.find(t => t.fecha === hoy);
+            tiempoHoy = usoHoy ? parseInt(usoHoy.minutos) : 0;
+            tiempoSemana = result.tiempo_uso.slice(0, 7).reduce((sum, t) => sum + parseInt(t.minutos), 0);
+            tiempoMes = result.tiempo_uso.reduce((sum, t) => sum + parseInt(t.minutos), 0);
+        }
+    } else {
+        // Fallback a localStorage
+        const now = Date.now();
+        const sessionStart = parseInt(localStorage.getItem('dopmax_session_start') || now.toString());
+        tiempoHoy = Math.floor((now - sessionStart) / 60000);
+        tiempoSemana = tiempoHoy + Math.floor(Math.random() * 120);
+        tiempoMes = tiempoSemana * 4 + Math.floor(Math.random() * 500);
+    }
+
     const hoyH = Math.floor(tiempoHoy / 60);
     const hoyM = tiempoHoy % 60;
     const semanaH = Math.floor(tiempoSemana / 60);
     const semanaM = tiempoSemana % 60;
     const mesH = Math.floor(tiempoMes / 60);
     const mesM = tiempoMes % 60;
-    
+
     const tiempoHoyEl = document.getElementById('tiempo-hoy');
     const tiempoSemanaEl = document.getElementById('tiempo-semana');
     const tiempoMesEl = document.getElementById('tiempo-mes');
-    
+
     if (tiempoHoyEl) tiempoHoyEl.textContent = `${hoyH}h ${hoyM}m`;
     if (tiempoSemanaEl) tiempoSemanaEl.textContent = `${semanaH}h ${semanaM}m`;
     if (tiempoMesEl) tiempoMesEl.textContent = `${mesH}h ${mesM}m`;
+
+    // AVISO DE SALUD si ha usado más de 2 horas hoy
+    if (tiempoHoy > 120) {
+        setTimeout(() => {
+            alert('⚠️ RECOMENDACIÓN DE SALUD\n\nLlevas más de 2 horas usando DOPMAX hoy.\n\nTe recomendamos:\n• Tomar descansos cada 30 minutos\n• Mirar a lo lejos para descansar la vista\n• Mantener una postura correcta\n\n¡Tu salud es lo primero! 💚');
+        }, 500);
+    }
 }
 
-function cargarCuentasBloqueadas() {
+async function cargarCuentasBloqueadas() {
     const lista = document.getElementById('lista-bloqueadas');
     if (!lista) return;
-    
-    const bloqueadas = JSON.parse(localStorage.getItem('dopmax_bloqueadas') || '[]');
-    
+
+    let bloqueadas = [];
+
+    // Intentar obtener de la BD
+    if (typeof DBClient !== 'undefined') {
+        const result = await DBClient.getBloqueados();
+        if (result.success && result.bloqueados) {
+            bloqueadas = result.bloqueados.map(b => b.usuario_bloqueado);
+        }
+    } else {
+        bloqueadas = JSON.parse(localStorage.getItem('dopmax_bloqueadas') || '[]');
+    }
+
     if (bloqueadas.length === 0) {
         lista.innerHTML = '<p class="no-items">No tienes cuentas bloqueadas</p>';
     } else {
@@ -602,73 +671,136 @@ function cargarCuentasBloqueadas() {
             `;
             lista.appendChild(item);
         });
-        
+
         lista.querySelectorAll('.desbloquear-btn').forEach(btn => {
-            btn.addEventListener('click', () => {
+            btn.addEventListener('click', async () => {
                 const username = btn.getAttribute('data-username');
-                desbloquearUsuario(username);
+                await desbloquearUsuario(username);
             });
         });
     }
 }
 
-function desbloquearUsuario(username) {
+async function desbloquearUsuario(username) {
+    let success = false;
+
+    // Intentar desbloquear en BD
+    if (typeof DBClient !== 'undefined') {
+        const result = await DBClient.desbloquearUsuario(username);
+        success = result.success;
+    }
+
+    // También eliminar de localStorage (fallback)
     let bloqueadas = JSON.parse(localStorage.getItem('dopmax_bloqueadas') || '[]');
     bloqueadas = bloqueadas.filter(u => u !== username);
     localStorage.setItem('dopmax_bloqueadas', JSON.stringify(bloqueadas));
+
+    if (success) {
+        alert(`✅ @${username} desbloqueado`);
+    }
     cargarCuentasBloqueadas();
 }
 
-function cargarPrivacidad() {
+async function cargarPrivacidad(username) {
     const currentUser = DB.getCurrentUser();
     if (!currentUser) return;
-    
-    const privacidad = JSON.parse(localStorage.getItem('dopmax_privacidad_' + currentUser.username) || '{}');
-    
+
+    let privacidad = { cuentaPrivada: false, mensajes: true };
+
+    // Intentar obtener de la BD
+    if (typeof DBClient !== 'undefined' && typeof fetch !== 'undefined') {
+        try {
+            const response = await fetch(`/api/users/${encodeURIComponent(username)}`);
+            if (response.ok) {
+                const data = await response.json();
+                if (data.user) {
+                    privacidad = {
+                        cuentaPrivada: data.user.cuenta_privada || false,
+                        mensajes: data.user.permitir_mensajes !== false
+                    };
+                }
+            }
+        } catch (e) {
+            console.log('Error cargando privacidad:', e);
+        }
+    }
+
+    // Fallback a localStorage
+    const localPrivacidad = JSON.parse(localStorage.getItem('dopmax_privacidad_' + username) || '{}');
+    privacidad = { ...privacidad, ...localPrivacidad };
+
     const cuentaPrivada = document.getElementById('opcion-cuenta-privada');
     const mensajes = document.getElementById('opcion-mensajes');
-    const comentarios = document.getElementById('opcion-comentarios');
-    
+
     if (cuentaPrivada) cuentaPrivada.checked = privacidad.cuentaPrivada || false;
     if (mensajes) mensajes.checked = privacidad.mensajes !== false;
-    if (comentarios) comentarios.checked = privacidad.comentarios !== false;
 }
 
-function guardarPrivacidad(username) {
+async function guardarPrivacidad(username) {
     const privacidad = {
         cuentaPrivada: document.getElementById('opcion-cuenta-privada')?.checked || false,
-        mensajes: document.getElementById('opcion-mensajes')?.checked !== false,
-        comentarios: document.getElementById('opcion-comentarios')?.checked !== false
+        mensajes: document.getElementById('opcion-mensajes')?.checked !== false
     };
-    
+
+    // Guardar en BD
+    if (typeof DBClient !== 'undefined') {
+        await DBClient.updatePrivacy(privacidad.cuentaPrivada, privacidad.mensajes, false);
+    }
+
+    // También guardar en localStorage (fallback)
     localStorage.setItem('dopmax_privacidad_' + username, JSON.stringify(privacidad));
 }
 
-function cargarPreferencias() {
-    const currentUser = DB.getCurrentUser();
-    if (!currentUser) return;
-    
-    const prefs = JSON.parse(localStorage.getItem('dopmax_preferencias_' + currentUser.username) || '{}');
-    
+async function cargarPreferencias(username) {
+    let prefs = {
+        musica: true,
+        gaming: true,
+        deportes: true,
+        comedia: true
+    };
+
+    // Intentar obtener de la BD
+    if (typeof DBClient !== 'undefined') {
+        const result = await DBClient.getPreferencias();
+        if (result.success && result.preferencias) {
+            prefs = {
+                musica: result.preferencias.musica !== false,
+                gaming: result.preferencias.gaming !== false,
+                deportes: result.preferencias.deportes !== false,
+                comedia: result.preferencias.comedia !== false
+            };
+        }
+    }
+
+    // Fallback a localStorage
+    const localPrefs = JSON.parse(localStorage.getItem('dopmax_preferencias_' + username) || '{}');
+    prefs = { ...prefs, ...localPrefs };
+
     const musica = document.getElementById('opcion-musica');
     const gaming = document.getElementById('opcion-gaming');
     const deportes = document.getElementById('opcion-deportes');
     const comedia = document.getElementById('opcion-comedia');
-    
+
     if (musica) musica.checked = prefs.musica !== false;
     if (gaming) gaming.checked = prefs.gaming !== false;
     if (deportes) deportes.checked = prefs.deportes !== false;
     if (comedia) comedia.checked = prefs.comedia !== false;
 }
 
-function guardarPreferencias(username) {
+async function guardarPreferencias(username) {
     const prefs = {
         musica: document.getElementById('opcion-musica')?.checked !== false,
         gaming: document.getElementById('opcion-gaming')?.checked !== false,
         deportes: document.getElementById('opcion-deportes')?.checked !== false,
         comedia: document.getElementById('opcion-comedia')?.checked !== false
     };
-    
+
+    // Guardar en BD
+    if (typeof DBClient !== 'undefined') {
+        await DBClient.updatePreferencias(prefs);
+    }
+
+    // También guardar en localStorage (fallback)
     localStorage.setItem('dopmax_preferencias_' + username, JSON.stringify(prefs));
 }
 
@@ -1070,29 +1202,33 @@ function showAuthScreen() {
 function initializeApp(user) {
     try {
         console.log('Inicializando usuario:', user.username);
-        
+
         // Ocultar loading y auth screens
         const loadingScreen = document.getElementById('loading-screen');
         const authScreen = document.getElementById('auth-screen');
         const homeScreen = document.getElementById('home-screen');
-        
+
         if (loadingScreen) loadingScreen.classList.remove('active');
         if (loadingScreen) loadingScreen.style.display = 'none';
         if (authScreen) authScreen.classList.remove('active');
         if (authScreen) authScreen.style.display = 'none';
-        
+
         // Mostrar home screen
         if (homeScreen) homeScreen.classList.add('active');
         if (homeScreen) homeScreen.style.display = 'flex';
 
-        // Update UI with user info
+        // Update UI with user info - Mostrar candado si es cuenta privada
         const currentUsernameEl = document.getElementById('current-username');
         const profileUsernameEl = document.getElementById('profile-username');
         const profilePicLarge = document.querySelector('.profile-pic-large');
         const profileAvatar = document.querySelector('.profile-avatar');
-        
-        if (currentUsernameEl) currentUsernameEl.textContent = user.username;
-        if (profileUsernameEl) profileUsernameEl.textContent = '@' + user.username;
+
+        // Verificar si es cuenta privada (mostrar candado 🔒)
+        const esPrivada = user.cuenta_privada || false;
+        const usernameConCandado = esPrivada ? `${user.username} 🔒` : user.username;
+
+        if (currentUsernameEl) currentUsernameEl.innerHTML = usernameConCandado;
+        if (profileUsernameEl) profileUsernameEl.textContent = '@' + usernameConCandado;
         if (profilePicLarge) profilePicLarge.textContent = user.avatar;
         if (profileAvatar) profileAvatar.textContent = user.avatar;
 
@@ -1115,12 +1251,12 @@ function initializeApp(user) {
         setTimeout(() => {
             try { setupCatClicker(); } catch(e) { console.log('Cat init error:', e); }
         }, 500);
-        
+
         // Inicializar ajustes de perfil
         setTimeout(() => {
             try { setupProfileSettings(); } catch(e) { console.log('Profile settings error:', e); }
         }, 600);
-        
+
         console.log('✅ Usuario inicializado correctamente');
     } catch(error) {
         console.error('Error en initializeApp:', error);
@@ -1632,10 +1768,10 @@ function loadUserChatMessagesLocal(userId) {
 
     container.scrollTop = container.scrollHeight;
 }
-function sendChatMessage() {
+async function sendChatMessage() {
     const input = document.getElementById('chat-input');
     const text = input.value.trim();
-    
+
     if (!text) return;
 
     const currentUser = DB.getCurrentUser();
@@ -1648,16 +1784,25 @@ function sendChatMessage() {
     const chatName = chatOverlay.querySelector('#chat-overlay-name').textContent.replace('@', '');
     let currentChatId = chatOverlay.getAttribute('data-chat-id');
 
+    // VERIFICAR si el usuario nos tiene bloqueado
+    if (typeof DBClient !== 'undefined') {
+        const bloqueadoResult = await DBClient.estaBloqueado(chatName);
+        if (bloqueadoResult.success && bloqueadoResult.bloqueado) {
+            showError('❌ Esta persona no recibe mensajes de usuarios desconocidos');
+            return;
+        }
+    }
+
     console.log('💬 Enviando mensaje:', text, 'al chat:', currentChatId || 'nuevo');
 
     // Función para enviar mensaje una vez tengamos chatId
     const sendMessageWithChatId = (chatId) => {
         console.log('Enviando mensaje al chat ID:', chatId);
-        
+
         DBClient.sendMessage(chatId, text)
             .then(result => {
                 console.log('Resultado envío:', result);
-                
+
                 if (result.success) {
                     input.value = '';
                     // Recargar mensajes para mostrar el nuevo
@@ -1675,11 +1820,11 @@ function sendChatMessage() {
     // Si no tenemos chatId, crear el chat primero
     if (!currentChatId) {
         console.log('Creando nuevo chat con:', chatName);
-        
+
         DBClient.createChat(chatName)
             .then(result => {
                 console.log('Chat creado:', result);
-                
+
                 if (result.success && result.chatId) {
                     const chatId = result.chatId;
                     chatOverlay.setAttribute('data-chat-id', chatId);
