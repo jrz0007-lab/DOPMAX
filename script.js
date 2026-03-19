@@ -187,6 +187,9 @@ const DB = {
         ];
 
         defaultUsers.forEach(user => DB.saveUser(user));
+        
+        // Establecer foto de perfil por defecto para rafa
+        localStorage.setItem('dopmax_foto_perfil_rafa', 'https://i.imgur.com/5Gn9bVY.jpg');
     },
 
     getChatsForRoom: (roomName) => {
