@@ -2094,6 +2094,17 @@ const videoList = [
     'https://res.cloudinary.com/dr5llopu0/video/upload/v1773824478/13%C2%BA112_dveosy.mp4'
 ];
 
+// Generar ID único para cada video basado en su URL
+function getVideoIdFromUrl(url) {
+    // Extraer el nombre del archivo de la URL
+    const match = url.match(/\/([^\/]+)\.[^\.]+$/);
+    if (match) {
+        return 'video_' + match[1]; // ej: video_Download_1_npvpfo
+    }
+    // Fallback: usar hash de la URL
+    return 'video_' + btoa(url).replace(/[^a-zA-Z0-9]/g, '').substring(0, 20);
+}
+
 function getRandomVideo(currentVideo) {
     if (videoList.length <= 1) return videoList[0];
     
@@ -2121,9 +2132,17 @@ function setupVideoCloseButtons() {
             if (videoEl) {
                 const video = videoEl.querySelector('.video-element');
                 const source = video.querySelector('source');
-                source.src = getRandomVideo(source.src);
+                const newVideoUrl = getRandomVideo(source.src);
+                source.src = newVideoUrl;
                 video.load();
                 video.play();
+                
+                // Si este video estaba seleccionado, actualizar comentarios
+                if (selectedVideo === videoEl) {
+                    const newVideoId = getVideoIdFromUrl(newVideoUrl);
+                    console.log('🔄 Video actualizado, nuevos comentarios para:', newVideoId);
+                    loadVideoComments(newVideoId);
+                }
             }
         });
     });
@@ -2132,7 +2151,7 @@ function setupVideoCloseButtons() {
 function initVideoSources() {
     // Reset last video to avoid repeats on init
     lastVideo = null;
-    
+
     // Inicializar cada video con una URL aleatoria
     document.querySelectorAll('.dvd-video').forEach((video, index) => {
         const videoElement = video.querySelector('.video-element');
@@ -2141,7 +2160,62 @@ function initVideoSources() {
         sourceElement.src = randomVideo;
         videoElement.load();
         videoElement.play();
+        
+        // Inicializar comentarios para este video (usando su URL)
+        const videoId = getVideoIdFromUrl(randomVideo);
+        console.log('📹 Inicializando video', index + 1, ':', videoId);
+        
+        // Inicializar comentarios por defecto si no existen (localStorage fallback)
+        const existingComments = DB.getVideoComments(videoId);
+        if (!existingComments || existingComments.length === 0) {
+            initVideoCommentsLocal(videoId);
+        }
     });
+}
+
+// Inicializar comentarios por defecto en localStorage para un video
+function initVideoCommentsLocal(videoId) {
+    const botNames = [
+        { name: 'María García', avatar: '👩' },
+        { name: 'Carlos López', avatar: '👨' },
+        { name: 'Laura Martín', avatar: '👧' },
+        { name: 'David Rodríguez', avatar: '👦' },
+        { name: 'Ana Sánchez', avatar: '👩' }
+    ];
+
+    const fakeComments = [
+        '¡Me encanta! 🔥',
+        'Esto es increíble 😍',
+        '¿Alguien más viendo esto?',
+        'No puedo parar de verlo 😂',
+        '¡Qué bueno! 👏',
+        '¡Brutal! 💯',
+        '¡Guau! 😮',
+        '¡Calidad! ✨'
+    ];
+
+    // Crear 2-3 comentarios iniciales
+    const numComments = 2 + Math.floor(Math.random() * 2);
+    const shuffledBots = [...botNames].sort(() => Math.random() - 0.5);
+    const shuffledComments = [...fakeComments].sort(() => Math.random() - 0.5);
+
+    for (let i = 0; i < numComments; i++) {
+        const bot = shuffledBots[i % shuffledBots.length];
+        const commentText = shuffledComments[i % shuffledComments.length];
+        const now = new Date();
+        const time = now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
+
+        DB.saveVideoComment(videoId, {
+            id: 'bot_' + videoId + '_' + i,
+            username: bot.name,
+            avatar: bot.avatar,
+            text: commentText,
+            time: time,
+            isBot: true
+        });
+    }
+    
+    console.log('✅ Comentarios inicializados para', videoId);
 }
 
 function checkCollisions() {
@@ -2436,6 +2510,17 @@ function selectVideo(videoEl) {
     const commentBtn = document.getElementById('comment-nav-btn');
     commentBtn.classList.remove('hidden');
     commentBtn.style.display = 'flex';
+    
+    // Obtener la URL del video actual y generar su ID único
+    const videoElement = videoEl.querySelector('.video-element');
+    const sourceElement = videoElement.querySelector('source');
+    const videoUrl = sourceElement.src;
+    const videoId = getVideoIdFromUrl(videoUrl);
+    
+    console.log('📹 Video seleccionado:', videoId, 'URL:', videoUrl);
+    
+    // Cargar comentarios para este video específico
+    loadVideoComments(videoId);
 }
 
 function deselectVideo() {
