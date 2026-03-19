@@ -2595,7 +2595,6 @@ function renderComments(commentsList, comments) {
         
         const likes = comment.likes || 0;
         const dislikes = comment.dislikes || 0;
-        const reports = comment.reports || 0;
         
         commentEl.innerHTML = `
             <div class="comment-avatar">${comment.avatar || '👤'}</div>
@@ -2604,85 +2603,20 @@ function renderComments(commentsList, comments) {
                 <div class="comment-text">${comment.contenido || comment.text}</div>
                 <div class="comment-time">${formatTimestamp(comment.created_at)}</div>
                 <div class="comment-actions">
-                    <button class="comment-action-btn like-btn" data-comment-id="${comment.id}" data-action="like">
+                    <span class="comment-action-btn">
                         👍 <span class="count">${likes}</span>
-                    </button>
-                    <button class="comment-action-btn dislike-btn" data-comment-id="${comment.id}" data-action="dislike">
+                    </span>
+                    <span class="comment-action-btn">
                         👎 <span class="count">${dislikes}</span>
-                    </button>
-                    <button class="comment-action-btn report-btn" data-comment-id="${comment.id}" data-action="report">
-                        🚩 Reportar
-                    </button>
+                    </span>
+                    <span class="comment-action-btn report-btn">
+                        🚩
+                    </span>
                 </div>
             </div>
         `;
         commentsList.appendChild(commentEl);
     });
-    
-    // Añadir event listeners a los botones
-    addCommentActionListeners();
-}
-
-// Añadir event listeners a los botones de comentarios
-function addCommentActionListeners() {
-    // Like
-    document.querySelectorAll('.like-btn').forEach(btn => {
-        btn.addEventListener('click', async (e) => {
-            e.stopPropagation();
-            const commentId = btn.getAttribute('data-comment-id');
-            await handleCommentReaction(commentId, 'like');
-        });
-    });
-    
-    // Dislike
-    document.querySelectorAll('.dislike-btn').forEach(btn => {
-        btn.addEventListener('click', async (e) => {
-            e.stopPropagation();
-            const commentId = btn.getAttribute('data-comment-id');
-            await handleCommentReaction(commentId, 'dislike');
-        });
-    });
-    
-    // Reportar
-    document.querySelectorAll('.report-btn').forEach(btn => {
-        btn.addEventListener('click', async (e) => {
-            e.stopPropagation();
-            const commentId = btn.getAttribute('data-comment-id');
-            await handleCommentReport(commentId);
-        });
-    });
-}
-
-// Manejar like/dislike en comentarios
-async function handleCommentReaction(commentId, tipo) {
-    if (typeof DBClient !== 'undefined' && DBClient.connected) {
-        const result = await DBClient.reaccionarComentario(commentId, tipo);
-        if (result.success) {
-            console.log(`✅ ${tipo} ${result.accion}`);
-            // Recargar comentarios para actualizar contadores
-            loadVideoComments(currentVideoId);
-        } else {
-            alert(result.error || 'Error en la reacción');
-        }
-    } else {
-        alert('No hay conexión para reaccionar');
-    }
-}
-
-// Manejar reportar comentario
-async function handleCommentReport(commentId) {
-    const razon = prompt('¿Por qué quieres reportar este comentario? (opcional)');
-    
-    if (typeof DBClient !== 'undefined' && DBClient.connected) {
-        const result = await DBClient.reportarComentario(commentId, razon || '');
-        if (result.success) {
-            alert('✅ Comentario reportado. Gracias por ayudar a mantener la comunidad segura.');
-        } else {
-            alert(result.error || 'Error reportando comentario');
-        }
-    } else {
-        alert('No hay conexión para reportar');
-    }
 }
 
 // Formatear timestamp de PostgreSQL

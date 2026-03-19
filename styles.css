@@ -586,7 +586,7 @@ button, .tab, .dvd-video, .chat-item, .notification-item, .settings-item, .creat
 
 .comment-actions {
     display: flex;
-    gap: 12px;
+    gap: 8px;
     margin-top: 8px;
     align-items: center;
 }
@@ -594,50 +594,22 @@ button, .tab, .dvd-video, .chat-item, .notification-item, .settings-item, .creat
 .comment-action-btn {
     display: inline-flex;
     align-items: center;
-    gap: 4px;
+    gap: 3px;
     padding: 0;
     border: none;
     background: transparent;
-    border-radius: 0;
+    cursor: default;
+    color: #717171;
     font-size: 13px;
-    cursor: pointer;
-    transition: all 0.2s;
-    color: #606060;
-}
-
-.comment-action-btn:hover {
-    background: transparent;
-}
-
-.comment-action-btn.like-btn {
-    color: #606060;
-}
-
-.comment-action-btn.like-btn:hover {
-    color: #065fd4;
-}
-
-.comment-action-btn.dislike-btn {
-    color: #606060;
-}
-
-.comment-action-btn.dislike-btn:hover {
-    color: #065fd4;
-}
-
-.comment-action-btn.report-btn {
-    color: #606060;
-    font-size: 12px;
-}
-
-.comment-action-btn.report-btn:hover {
-    color: #065fd4;
 }
 
 .comment-action-btn .count {
     font-weight: 500;
     font-size: 13px;
-    margin-left: 2px;
+}
+
+.comment-action-btn.report-btn {
+    font-size: 12px;
 }
 
 .no-comments {
