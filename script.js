@@ -1740,19 +1740,22 @@ function openChatWithUser(username, avatar) {
 // Variables para polling de mensajes en tiempo real
 let chatPollingInterval = null;
 let currentChatIdPolling = null;
+let lastMessageCount = 0;
+let lastMessageId = null;
 
-// Iniciar polling para mensajes nuevos (cada 3 segundos)
+// Iniciar polling para mensajes nuevos (cada 2 segundos)
 function startChatPolling(chatId) {
     stopChatPolling(); // Detener polling anterior
     currentChatIdPolling = chatId;
-    console.log('🔄 Iniciando polling para chat:', chatId);
-    
+    lastMessageId = null; // Resetear último mensaje
+    console.log('🔄 Iniciando polling para chat:', chatId, 'cada 2 segundos');
+
     chatPollingInterval = setInterval(() => {
         const chatOverlay = document.getElementById('chat-overlay');
         if (currentChatIdPolling && chatOverlay?.classList?.contains('active')) {
-            loadChatMessagesFromDB(currentChatIdPolling, false); // false = no scroll
+            loadChatMessagesFromDB(currentChatIdPolling, false); // false = mantener scroll
         }
-    }, 3000);
+    }, 2000);
 }
 
 // Detener polling
@@ -1816,49 +1819,59 @@ function loadChatMessagesFromDB(chatId, scrollToBottom = true) {
 
     DBClient.getChatMessages(chatId)
         .then(result => {
-            console.log('Mensajes recibidos:', result);
+            console.log('Mensajes recibidos:', result.mensajes ? result.mensajes.length : 0);
 
             if (result.success && result.mensajes) {
                 const container = document.getElementById('chat-overlay-messages');
                 if (!container) return;
 
-                // Guardar posición actual del scroll
-                const previousScrollHeight = container.scrollHeight;
-                const previousScrollTop = container.scrollTop;
-
-                container.innerHTML = '';
                 const currentUser = DB.getCurrentUser();
+                const messagesContainer = container;
+                
+                // Contar mensajes actuales antes de actualizar
+                const currentMessageCount = messagesContainer.querySelectorAll('.chat-message').length;
+                const newMessageCount = result.mensajes.length;
+                
+                // Verificar si hay mensajes nuevos
+                const hasNewMessages = newMessageCount > currentMessageCount;
+                
+                // Obtener el último mensaje ID para detectar cambios
+                const lastMsg = result.mensajes[result.mensajes.length - 1];
+                const isNewMessage = lastMessageId !== lastMsg?.id;
+                
+                if (hasNewMessages || isNewMessage) {
+                    console.log('✨ Mensajes nuevos detectados:', newMessageCount - currentMessageCount);
+                }
+                
+                // Actualizar último mensaje ID
+                if (lastMsg) {
+                    lastMessageId = lastMsg.id;
+                }
+
+                messagesContainer.innerHTML = '';
 
                 result.mensajes.forEach(msg => {
                     const msgEl = document.createElement('div');
-                    msgEl.className = 'chat-message' + (msg.sent ? ' sent' : '');
+                    msgEl.className = 'chat-message' + (msg.remitente === currentUser?.username ? ' sent' : '');
                     msgEl.innerHTML = `
-                        <div class="chat-message-avatar">${msg.sent ? (currentUser?.avatar || '🐱') : '👤'}</div>
+                        <div class="chat-message-avatar">${msg.remitente === currentUser?.username ? (currentUser?.avatar || '🐱') : (msg.avatar || '👤')}</div>
                         <div class="chat-message-content">
-                            <div class="chat-message-text">${msg.text}</div>
-                            <div class="chat-message-time">${msg.time}</div>
+                            <div class="chat-message-text">${msg.contenido}</div>
+                            <div class="chat-message-time">${formatTimestamp(msg.created_at)}</div>
                         </div>
                     `;
-                    container.appendChild(msgEl);
+                    messagesContainer.appendChild(msgEl);
                 });
 
-                // Scroll al final solo si es la primera carga o si hay mensajes nuevos
-                if (scrollToBottom) {
-                    container.scrollTop = container.scrollHeight;
-                } else {
-                    // Mantener posición si hay mensajes nuevos
-                    const newScrollHeight = container.scrollHeight;
-                    if (newScrollHeight > previousScrollHeight) {
-                        container.scrollTop = newScrollHeight;
-                    } else {
-                        container.scrollTop = previousScrollTop;
-                    }
+                // Scroll al final solo si hay mensajes nuevos o es la primera carga
+                if (scrollToBottom || hasNewMessages) {
+                    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+                    console.log('⬇️ Scroll al final');
                 }
             }
         })
         .catch(err => {
             console.error('Error cargando mensajes:', err);
-            showError('No se pudieron cargar los mensajes');
         });
 }
 
@@ -1926,8 +1939,16 @@ async function sendChatMessage() {
 
                 if (result.success) {
                     input.value = '';
-                    // Recargar mensajes para mostrar el nuevo
-                    loadChatMessagesFromDB(chatId);
+                    // Recargar mensajes inmediatamente para mostrar el nuevo
+                    loadChatMessagesFromDB(chatId, true);
+                    // Forzar scroll al final
+                    const container = document.getElementById('chat-overlay-messages');
+                    if (container) {
+                        setTimeout(() => {
+                            container.scrollTop = container.scrollHeight;
+                        }, 100);
+                    }
+                    console.log('✅ Mensaje enviado, recargando...');
                 } else {
                     showError(result.error || 'No se pudo enviar el mensaje');
                 }
