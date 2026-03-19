@@ -1189,9 +1189,12 @@ async function startServer() {
     try {
         // Crear tablas
         await createTables();
-        
+
         // Inicializar comentarios en videos
         await initVideoComments();
+
+        // Actualizar tabla de usuarios con columnas adicionales (si no existen)
+        await updateUsersTable();
 
         // Iniciar servidor
         app.listen(PORT, () => {
@@ -1201,6 +1204,45 @@ async function startServer() {
     } catch (error) {
         console.error('❌ Error iniciando servidor:', error);
         process.exit(1);
+    }
+}
+
+// Actualizar tabla de usuarios con columnas adicionales
+async function updateUsersTable() {
+    if (!pool) return;
+
+    try {
+        // Agregar columna foto_perfil si no existe
+        await pool.query(`
+            ALTER TABLE usuarios 
+            ADD COLUMN IF NOT EXISTS foto_perfil VARCHAR(500)
+        `);
+        console.log('✅ Columna foto_perfil verificada');
+
+        // Agregar columna cuenta_privada si no existe
+        await pool.query(`
+            ALTER TABLE usuarios 
+            ADD COLUMN IF NOT EXISTS cuenta_privada BOOLEAN DEFAULT FALSE
+        `);
+        console.log('✅ Columna cuenta_privada verificada');
+
+        // Agregar columna permitir_mensajes si no existe
+        await pool.query(`
+            ALTER TABLE usuarios 
+            ADD COLUMN IF NOT EXISTS permitir_mensajes BOOLEAN DEFAULT TRUE
+        `);
+        console.log('✅ Columna permitir_mensajes verificada');
+
+        // Agregar columna es_empresa si no existe
+        await pool.query(`
+            ALTER TABLE usuarios 
+            ADD COLUMN IF NOT EXISTS es_empresa BOOLEAN DEFAULT FALSE
+        `);
+        console.log('✅ Columna es_empresa verificada');
+
+        console.log('✅ Tabla de usuarios actualizada correctamente');
+    } catch (error) {
+        console.error('❌ Error actualizando tabla de usuarios:', error);
     }
 }
 
